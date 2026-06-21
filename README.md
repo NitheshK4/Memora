@@ -1,143 +1,273 @@
-# Memora: A Persistent and Reconcilable Memory System for LLM Agents
+<div align="center">
 
-Memora is a stateful, reconcilable memory layer designed to sit underneath AI agents. It ensures user facts persist across sessions, detects contradictions, canonicalizes properties and entities, resolves conflicts using stability-aware rules, and logs every change in a detailed audit history.
+<img src="https://img.shields.io/badge/Python-3.11+-3776AB?style=for-the-badge&logo=python&logoColor=white"/>
+<img src="https://img.shields.io/badge/FastAPI-0.100+-009688?style=for-the-badge&logo=fastapi&logoColor=white"/>
+<img src="https://img.shields.io/badge/Streamlit-1.24+-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white"/>
+<img src="https://img.shields.io/badge/SQLite-003B57?style=for-the-badge&logo=sqlite&logoColor=white"/>
+<img src="https://img.shields.io/badge/Tests-26%20Passing-00C853?style=for-the-badge&logo=pytest&logoColor=white"/>
 
-## 📋 Problem Statement
+# 🧠 Memora
+### *Persistent & Reconcilable Memory Graph for LLM Agents*
 
-Traditional AI agents struggle with conversational context over long periods:
-1. **Context Loss**: They forget facts when conversations span multiple sessions.
-2. **Silent Inconsistencies**: They overwrite facts or store contradictory claims (e.g. stating the user lives in SF and NYC simultaneously) without addressing the conflict.
-3. **Hallucinations**: They make up answers when memory retrieval is weak.
-4. **Opaque Decisions**: They do not log *why* a fact was updated, superseded, or rejected.
+> A stateful memory layer that gives AI agents the ability to **remember**, **reconcile conflicts**, **validate facts**, and **explain every decision** across sessions.
 
-Memora solves this by applying strict **stability registry metadata** to different properties (e.g. birthday is stable; city is time-varying) and routing updates through a validation, conflict-detection, and resolution pipeline.
+</div>
+
+---
+
+## 🎯 The Problem
+
+Traditional AI agents fail in four critical ways:
+
+| Problem | Description |
+|---|---|
+| 🔴 **Context Loss** | Facts are forgotten when conversations span multiple sessions |
+| 🟠 **Silent Inconsistencies** | Contradictory facts are stored without resolution (e.g. "lives in SF" and "lives in NYC" simultaneously) |
+| 🟡 **Hallucinations** | Agents fabricate answers instead of recalling stored memory |
+| 🔵 **Opaque Decisions** | No explanation for why a fact was accepted, rejected, or superseded |
+
+**Memora solves all four.**
+
+---
+
+## ✨ Features
+
+- 🔐 **JWT Authentication** — Multi-user system with secure PBKDF2 password hashing
+- 🕸️ **Entity-Relationship Graph** — Visual node-edge memory graph with real-time updates
+- ⚖️ **Conflict Detection & Resolution** — Stability-aware rules distinguish stable facts (birthday) from time-varying facts (employer, city)
+- 🔍 **Fact Extraction** — Hybrid pipeline: LLM-based (OpenAI) with rule-based offline fallback
+- ✅ **Validation Layer** — Type checking and plausibility guards before any fact is stored
+- 📜 **Full Audit Trail** — Every memory state transition (created → superseded → disputed) is logged
+- 🔄 **Reflection Engine** — Background consolidation worker that resolves stale disputes
+- 🧮 **Local Vector Similarity** — Offline TF-IDF matching with no external dependencies
+- 📊 **Interactive Dashboard** — Dark-mode Streamlit UI with live graph visualization
 
 ---
 
 ## 🏗️ Architecture
 
-The processing pipeline for any incoming message follows these steps:
-
 ```
 [ User Message ]
        │
        ▼
-[ Fact Extractor ] ────► Extracts Candidate Facts (Rule-based or LLM)
+[ Fact Extractor ] ────► Extracts Candidate Facts (LLM or Rule-based)
        │
        ▼
-[ Normalizer ] ────────► Standardizes properties (SF -> San Francisco)
+[ Normalizer ] ─────────► Standardizes values  (SF → San Francisco)
        │
        ▼
-[ Validator ] ─────────► Verifies plausibility (e.g. age range check)
+[ Validator ] ──────────► Plausibility checks  (age range, date format)
        │
        ▼
-[ Conflict Detector ] ─► Identifies overlaps with active memories
+[ Conflict Detector ] ──► Finds overlapping active memories
        │
        ▼
-[ Resolution Engine ] ─► Applies rules (supersede, dispute, merge)
+[ Resolution Engine ] ──► Applies stability rules (supersede / dispute / merge)
        │
        ▼
-[ Memory DB (SQLite) ] ─► Persists fact state transitions & logs Audit Event
+[ Memory Graph (SQLite) ] ► Persists state transitions & logs Audit Event
        │
        ▼
-[ Response Generator ] ─► Drafts answer using resolved active profile context
+[ Response Generator ] ──► Answers using resolved active profile context
 ```
-
-### Module File Structure
-- `app/api.py`: FastAPI endpoints.
-- `app/models.py`: Database tables and validation schemas.
-- `app/memory_db.py`: CRUD operations and similarity search on SQLite.
-- `app/extractor.py`: Hybrid fact extraction (LLM with rule fallback).
-- `app/normalizer.py`: Word & property canonicalization.
-- `app/property_registry.py`: Registry for stable/time-varying property metadata.
-- `app/conflict_detector.py`: Identity and contradiction comparison.
-- `app/resolver.py`: Resolution rules (recency vs stability-conflict).
-- `app/validator.py`: Type verification and check limits.
-- `app/embeddings.py`: Local bag-of-words similarity matching.
-- `app/memory_agent.py`: Orchestrator of the chat flow.
-- `frontend/app.py`: Streamlit dashboard client.
 
 ---
 
-## 🚀 Setup & Installation
+## 🧠 Memory Reconciliation Logic
 
-### 1. Requirements
-Ensure you have Python 3.11+ installed.
+Not every contradiction is the same. Memora distinguishes between **stable** and **time-varying** properties:
 
-### 2. Install Dependencies
+| Property | Stability | Conflict Behaviour |
+|---|---|---|
+| `birthday` | 🔒 Stable | New value marked `disputed`, original stays `active` |
+| `dog_name` | 🔒 Stable | New value marked `disputed`, original stays `active` |
+| `city` | 🔄 Time-varying | Original marked `superseded`, new value becomes `active` |
+| `employer` | 🔄 Time-varying | Original marked `superseded`, new value becomes `active` |
+| `preference` | 🔄 Time-varying | History preserved, most recent value is `active` |
+| `hobby` | 🔄 Multi-value | All values coexist as `active` |
+
+### Example Scenarios
+
+<details>
+<summary><b>📍 Scenario A: Relocation & Job Change</b></summary>
+
+```
+Session 1: "I work at Google in San Francisco"
+Session 2: "I just moved to New York for my new job at Meta"
+
+Result:
+  employer: Google  → superseded ✗
+  employer: Meta    → active ✓
+  city: San Francisco → superseded ✗
+  city: New York    → active ✓
+```
+</details>
+
+<details>
+<summary><b>🐶 Scenario B: Stable Fact Recall</b></summary>
+
+```
+Session 1: "My dog's name is Max"
+Session 5: "What's my dog's name?"
+
+Result: Agent answers "Max" — no hallucination
+```
+</details>
+
+<details>
+<summary><b>🎂 Scenario C: Stable Fact Conflict</b></summary>
+
+```
+Session 1: "My birthday is July 15th"
+Session 3: "My birthday is July 20th"
+
+Result:
+  birthday: July 15 → active ✓ (stable, kept)
+  birthday: July 20 → disputed ⚠️ (requires clarification)
+```
+</details>
+
+<details>
+<summary><b>🌶️ Scenario D: Preference Reversal</b></summary>
+
+```
+Session 1: "I hate spicy food"
+Session 2: "I love spicy food actually"
+
+Result: Preference history preserved, latest value is active
+```
+</details>
+
+---
+
+## 🚀 Quick Start
+
+### 1. Clone & Install
+
 ```bash
+git clone https://github.com/NitheshK4/Memora.git
+cd Memora
 pip install -r requirements.txt
 ```
 
-### 3. Environment Variables (Optional)
-Copy `.env.example` to `.env`:
-```bash
-cp .env.example .env
-```
-Add your `OPENAI_API_KEY` to `.env` to enable LLM-based fact extraction. If left empty, the app runs fully offline using local rules.
+### 2. Run (One Command)
 
-### 4. Start Everything with One Command
 ```bash
 ./start.sh
 ```
 
-This starts both the **FastAPI backend** (port 8002) and **Streamlit frontend** (port 8502) and seeds the database automatically.
-
 | Service | URL |
 |---|---|
-| **Dashboard** | http://localhost:8502 |
-| **API Docs** | http://localhost:8002/docs |
+| 📊 **Dashboard** | http://localhost:8503 |
+| 📖 **API Docs** | http://localhost:8002/docs |
 
-Default login: **`seed_user`** / **`password123`**
+**Default login:** `seed_user` / `password123`
 
-### 5. Run Manually (Optional)
-If you prefer starting services separately:
+### 3. Optional: Enable LLM Mode
 
-**Terminal 1 — Backend:**
+Copy `.env.example` to `.env` and add your OpenAI key for richer fact extraction:
 ```bash
-python3 -m uvicorn app.api:app --host 127.0.0.1 --port 8002 --reload
+cp .env.example .env
+# Add: OPENAI_API_KEY=sk-...
 ```
 
-**Terminal 2 — Frontend:**
-```bash
-BACKEND_URL=http://localhost:8002 python3 -m streamlit run frontend/app.py --server.port 8502
-```
+Without a key, Memora runs fully **offline** using built-in rules.
 
-## 🧪 Testing Suite
+---
 
-Automated tests are located in `tests/` using `pytest`.
+## 🧪 Testing
 
-### Run all tests programmatically:
 ```bash
 python tests/run_all_tests.py
 ```
-Or directly:
-```bash
-pytest tests/ -v
+
+```
+====================================================
+  ✅ All 26 Tests Passed (100%)
+====================================================
+```
+
+**Test coverage includes:**
+- Unit tests: conflict detector, resolver, validator, memory DB
+- Integration tests: full pipeline, multi-session learning
+- Graph tests: entity merging, JWT auth, reflection engine
+- Performance tests: memory matching latency under load
+
+---
+
+## 📁 Project Structure
+
+```
+Memora/
+├── app/
+│   ├── api.py              # FastAPI routes (JWT-protected)
+│   ├── auth.py             # PBKDF2 hashing + pure-Python JWT
+│   ├── memory_agent.py     # Chat orchestrator
+│   ├── memory_db.py        # CRUD + similarity search
+│   ├── graph_store.py      # Entity-Relationship graph engine
+│   ├── extractor.py        # Hybrid fact extraction (LLM/rules)
+│   ├── conflict_detector.py# Contradiction detection
+│   ├── resolver.py         # Stability-aware resolution rules
+│   ├── reflection.py       # Background consolidation engine
+│   ├── validator.py        # Type & plausibility checks
+│   ├── normalizer.py       # Value canonicalization
+│   ├── embeddings.py       # Local TF-IDF vector similarity
+│   └── property_registry.py# Stability metadata registry
+├── frontend/
+│   └── app.py              # Streamlit dashboard
+├── tests/                  # 26 automated tests
+├── scripts/
+│   ├── seed_db.py          # Demo data seeder
+│   ├── backup_db.py        # Database backup utility
+│   └── benchmark.py        # Performance benchmarks
+├── docs/
+│   ├── architecture.md     # System design paper
+│   ├── api_spec.md         # OpenAPI documentation
+│   └── research_rationales.md
+├── deploy/
+│   ├── nginx.conf          # Reverse proxy config
+│   └── prometheus.yml      # Metrics scraper config
+├── requirements.txt
+└── start.sh                # One-command startup script
 ```
 
 ---
 
-## 💡 How Memory Reconciliation Works
+## 📡 API Endpoints
 
-Memory updates are governed by the `PropertyRegistry`.
-
-| Property | Type | Stability | Multi-Value | Conflict Handling |
-|---|---|---|---|---|
-| **Birthday** | date | Stable | No | Marks new value `disputed`, keeps original `active`. Requires clarification. |
-| **Dog Name** | string | Stable | No | Marks new value `disputed`, keeps original `active`. |
-| **City** | string | Time-varying | No | Supersedes original (status `superseded`, sets `effective_to` timestamp), stores new as `active`. |
-| **Employer** | string | Time-varying | No | Supersedes original, stores new as `active`. |
-| **Preference** | string | Time-varying | Yes | Keeps history of preferences, updates with recency. |
-| **Hobby** | string | Time-varying | Yes | Appends as coexisting active facts. |
+| Method | Endpoint | Description |
+|---|---|---|
+| `POST` | `/register` | Create a new user account |
+| `POST` | `/token` | Login and receive JWT token |
+| `POST` | `/chat` | Send a message and store facts |
+| `GET` | `/memories` | Get active memory profile |
+| `GET` | `/memories/history` | Full fact version history |
+| `GET` | `/memories/audit` | Complete audit event log |
+| `GET` | `/memories/search?q=` | Semantic similarity search |
+| `POST` | `/memories/clear` | Reset user memory graph |
+| `GET` | `/graph/snapshot` | ER graph node-edge data |
+| `POST` | `/reflection/trigger` | Run consolidation cycle |
+| `GET` | `/health` | Backend health check |
 
 ---
 
 ## ⚠️ Known Limitations
-- **Local Similarity**: The pure-Python TF-IDF similarity matcher is lightweight and offline-friendly but lacks deep semantic vector understanding.
-- **Rule Extractor Scope**: The fallback regex extractor is tailored to the demo scenarios; unstructured natural text outside these formats will benefit significantly from an OpenAI API key.
+
+- **Local Vector Similarity**: TF-IDF is lightweight and offline-friendly but lacks deep semantic understanding — connect OpenAI embeddings or ChromaDB for production use
+- **Rule Extractor Scope**: The offline regex extractor covers core scenarios; complex natural language benefits from the OpenAI key
 
 ## 🔮 Future Enhancements
-- **Vector Database**: Connect to pgvector or ChromaDB for dense embeddings.
-- **Entity Resolution**: Support complex relationships (e.g. tracking multiple dogs with individual profiles).
-- **Proactive Consolidation**: Periodically run background routines to consolidate disputed facts with LLM reasoning.
+
+- [ ] pgvector / ChromaDB integration for dense semantic embeddings
+- [ ] Multi-entity relationship tracking (e.g. multiple pets with individual profiles)
+- [ ] LLM-driven dispute resolution with explanation generation
+- [ ] WebSocket-based real-time memory update streaming
+- [ ] Export memory graph as JSON / RDF
+
+---
+
+<div align="center">
+
+Built with 🧠 by [NitheshK4](https://github.com/NitheshK4)
+
+</div>
