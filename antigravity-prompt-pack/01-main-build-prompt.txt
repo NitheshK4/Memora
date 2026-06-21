@@ -1,0 +1,382 @@
+Build a full-stack AI project called "Memora: A Persistent and Reconcilable Memory System for LLM Agents".
+
+Goal:
+Create a memory layer for AI agents that persists user facts across sessions, detects contradictions, reconciles conflicting information, validates facts, and maintains a full audit trail.
+
+This is not a generic chatbot. The core innovation is a structured memory system that helps an LLM agent remember, update, reconcile, and explain user facts over time.
+
+Important design principles:
+1. Not every contradiction should be treated the same.
+2. Some facts are stable:
+   - birthday
+   - dog name
+   - family relations
+3. Some facts are time-varying:
+   - city
+   - company
+   - job title
+   - food preference
+4. The system must support memory states:
+   - active
+   - superseded
+   - disputed
+   - expired
+   - confirmed
+5. The system should never silently keep two incompatible active facts for the same stable property.
+6. The system should keep history instead of deleting old facts.
+7. The system must be explainable: show why a fact was kept, replaced, merged, or marked disputed.
+
+Tech stack:
+- Python 3.11+
+- FastAPI
+- Streamlit
+- SQLite for MVP
+- SQLAlchemy ORM
+- Pydantic
+- Local embedding-based similarity for MVP
+- OpenAI API or Ollama for fact extraction and optional semantic validation
+- Keep architecture modular so PostgreSQL + vector DB can be added later
+
+Build a real runnable project, not pseudo-code.
+Do not leave TODOs.
+Do not generate only architecture notes.
+Generate the actual codebase with complete files.
+
+Core system behavior:
+When a user sends a message:
+1. Extract candidate facts from the message
+2. Normalize them into structured memory records
+3. Retrieve existing related facts for the same entity/property
+4. Detect if the new fact:
+   - confirms an existing fact
+   - updates an old fact
+   - contradicts an existing fact
+   - coexists temporally with an old fact
+5. Run validation:
+   - internal consistency
+   - temporal plausibility
+   - semantic plausibility
+   - optional external verifiability hooks
+6. Apply resolution strategy:
+   - keep existing
+   - replace with new fact
+   - keep both with temporal reasoning
+   - mark disputed
+   - ask user for clarification
+7. Save the result with a full audit log
+8. Build agent context from resolved active memories only
+9. Return an agent response that uses memory correctly
+
+Example scenarios the system must handle:
+1. Session 1:
+   User: "I work at Google in San Francisco"
+   Store:
+   - employer = Google
+   - city = San Francisco
+
+2. Session 2:
+   User: "I just moved to New York for my new job at Meta"
+   System should:
+   - mark Google as superseded by Meta for employer
+   - mark San Francisco as superseded by New York for city
+   - preserve history
+   - not keep both as active
+
+3. Session 1:
+   User: "My dog's name is Max"
+   Session 2:
+   User: "What's my dog's name?"
+   Agent should answer:
+   - Max
+
+4. Session 1:
+   User: "My birthday is July 15th"
+   Session 5:
+   User asks birthday
+   Agent must never hallucinate another date if memory exists
+
+5. Session 1:
+   User: "I hate spicy food"
+   Session 2:
+   User: "I love spicy food actually"
+   System should detect preference reversal and either:
+   - update active preference with recency
+   - or mark as changed preference over time
+
+High-level architecture:
+- fact extraction layer
+- normalization layer
+- memory store
+- conflict detector
+- resolution engine
+- validator
+- agent context builder
+- FastAPI backend
+- Streamlit demo UI
+
+Data model requirements:
+
+Create structured memory records with fields like:
+- id
+- user_id
+- entity_id
+- entity_type
+- property_name
+- canonical_property
+- value_raw
+- value_canonical
+- value_type
+- confidence
+- source_text
+- source_type
+- session_id
+- created_at
+- effective_from
+- effective_to
+- status
+- version
+- validation_status
+- resolution_note
+
+Suggested statuses:
+- active
+- superseded
+- disputed
+- expired
+- rejected
+
+Create an audit/event model with fields like:
+- id
+- user_id
+- memory_id
+- event_type
+- previous_value
+- new_value
+- reason
+- resolver_type
+- created_at
+
+Create Pydantic models for:
+- Fact
+- ExtractedFact
+- ConflictInfo
+- ValidationResult
+- ResolutionAction
+- MemorySnapshot
+- AuditEvent
+- ChatRequest
+- ChatResponse
+
+Project requirements by file/module:
+
+1. models.py
+Implement all Pydantic and SQLAlchemy models.
+Clearly separate API schemas from database models if needed.
+
+2. memory_db.py
+Implement a MemoryDB service with methods:
+- store_fact
+- get_active_fact
+- get_fact_history
+- get_related_facts
+- search_similar_facts
+- get_user_profile
+- update_fact_status
+- record_audit_event
+- get_audit_log
+- clear_user_memory
+
+3. normalizer.py
+Implement canonicalization utilities:
+- normalize city names
+- normalize company names
+- normalize person/pet names if possible
+- normalize property labels
+Examples:
+- NYC -> New York
+- SF -> San Francisco
+- Meta Platforms -> Meta
+Use simple rule-based normalization first.
+
+4. conflict_detector.py
+Implement logic for:
+- exact contradiction detection
+- semantic contradiction detection
+- stable vs time-varying property handling
+- related memory retrieval
+- temporal overlap checks
+
+Important:
+Birthdays and dog names should behave differently from city/company.
+The detector must use property metadata to decide conflict type.
+
+5. property_registry.py
+Create a property registry describing each memory property:
+- whether stable or time-varying
+- whether multiple active values are allowed
+- expected type
+- resolution preference
+Examples:
+- birthday: stable, single active
+- dog_name: stable, single active
+- employer: time-varying, single active
+- favorite_food: time-varying, single active
+- hobbies: multi-value allowed
+
+6. resolver.py
+Implement multiple strategies:
+- resolve_by_recency
+- resolve_by_confidence
+- resolve_by_property_rules
+- resolve_with_temporal_update
+- resolve_by_user_clarification
+- auto_resolve
+
+Important:
+If a new employer arrives later, old employer should become superseded.
+If a second birthday appears, mark disputed or ask for clarification.
+Do not blindly recency-replace all properties.
+
+7. validator.py
+Implement validation for:
+- internal consistency
+- temporal plausibility
+- type validation
+- semantic plausibility
+- optional external hook stubs
+Examples:
+- birthday cannot be 300 years ago for a normal human profile
+- if age and birthday conflict, flag it
+- if two active dog names exist for one dog entity, flag it
+
+8. extractor.py
+Implement fact extraction from natural language.
+Use LLM if API key exists.
+If no API key exists, provide a rule-based fallback extractor.
+Return structured extracted facts with confidence scores.
+
+9. embeddings.py
+Implement a lightweight local similarity layer for MVP.
+Can use sentence-transformers or a simple fallback.
+Keep it optional and modular.
+If embeddings are unavailable, app should still run with rule-based matching.
+
+10. memory_agent.py
+Implement a MemoryAgent class with methods:
+- process_message(user_id, message)
+- extract_facts(message)
+- reconcile_facts(user_id, facts)
+- build_memory_context(user_id)
+- generate_response(user_id, message)
+- chat(user_id, message)
+
+The response generation should use only active/resolved memories by default.
+If disputed memories exist, the agent may mention uncertainty.
+
+11. api.py
+Build FastAPI endpoints:
+- POST /session/start
+- POST /chat
+- GET /memories/{user_id}
+- GET /memories/{user_id}/history
+- GET /memories/{user_id}/search
+- POST /memories/{user_id}/clear
+- GET /health
+
+12. frontend/app.py
+Build a Streamlit demo UI with:
+- chat interface
+- user selector
+- current active memory panel
+- memory history panel
+- conflict detection panel
+- resolution explanation panel
+- audit trail panel
+- reset memory button
+
+The UI should clearly visualize:
+- active facts
+- superseded facts
+- disputed facts
+- why a resolution happened
+
+13. tests/
+Create tests for:
+- persistent memory across sessions
+- contradiction detection
+- stable fact handling
+- time-varying fact handling
+- hallucination prevention when memory exists
+- audit trail generation
+- resolution decisions
+
+Required demo scenarios:
+- employer/location change
+- dog name recall
+- birthday recall
+- preference reversal
+- conflicting birthday
+- synonym normalization like NYC vs New York
+
+Folder structure:
+- app/
+  - api.py
+  - models.py
+  - db.py
+  - memory_db.py
+  - extractor.py
+  - normalizer.py
+  - property_registry.py
+  - conflict_detector.py
+  - resolver.py
+  - validator.py
+  - embeddings.py
+  - memory_agent.py
+  - config.py
+  - utils.py
+- frontend/
+  - app.py
+- tests/
+- requirements.txt
+- README.md
+- .env.example
+
+Implementation rules:
+- Start with SQLite
+- Keep code modular and easy to explain
+- Add comments only where needed
+- Use clean class/service boundaries
+- Include sample seed/demo data if useful
+- The app must run even without external API keys
+- Use fallback local logic when LLM is unavailable
+- Do not overengineer the MVP
+- Make the project feel like a strong final-year major project with real research flavor
+
+README requirements:
+- project overview
+- problem statement
+- architecture
+- setup instructions
+- environment variables
+- how memory reconciliation works
+- example flows
+- known limitations
+- future improvements
+
+Deliverables:
+1. complete runnable codebase
+2. FastAPI backend
+3. Streamlit frontend
+4. SQLite persistence
+5. conflict detection and resolution logic
+6. audit trail
+7. test suite
+8. README
+
+Output requirements:
+1. show full file tree
+2. provide full content of each file
+3. write actual runnable code
+4. do not skip important files
+5. do not output pseudo-code
+6. stop only after the MVP is complete

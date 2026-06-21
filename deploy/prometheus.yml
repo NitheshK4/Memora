@@ -1,0 +1,11 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  # Scraping metrics from Prometheus middleware in our FastAPI backend daemon
+  - job_name: 'memora-backend'
+    scrape_interval: 5s
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['backend:8000']
