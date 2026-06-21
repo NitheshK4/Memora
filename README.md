@@ -264,10 +264,4 @@ Memora/
 - [ ] WebSocket-based real-time memory update streaming
 - [ ] Export memory graph as JSON / RDF
 
----
 
-<div align="center">
-
-Built with 🧠 by [NitheshK4](https://github.com/NitheshK4)
-
-</div>
