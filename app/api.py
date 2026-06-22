@@ -1,4 +1,6 @@
+from datetime import datetime, timezone
 from fastapi import FastAPI, Depends, HTTPException, Query, status
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from typing import List, Dict, Any
@@ -19,8 +21,23 @@ Base.metadata.create_all(bind=engine)
 app = FastAPI(
     title="Memora Graph API",
     description="Persistent and Reconcilable Memory Graph Layer for LLM Agents",
-    version="2.0.0"
+    version="2.1.0"
 )
+
+# CORS — allow the Streamlit frontend and local development origins
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:8503",
+        "http://127.0.0.1:8503",
+        "http://localhost:3000",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+_STARTUP_TIME = datetime.now(timezone.utc)
 
 # ==========================================
 # Authentication Endpoints
@@ -159,5 +176,13 @@ def trigger_reflection(
 
 @app.get("/health", tags=["System"])
 def health_check():
-    """Verify backend health status."""
-    return {"status": "healthy", "service": "memora-graph-api"}
+    """Verify backend health status with uptime metadata."""
+    now = datetime.now(timezone.utc)
+    uptime_seconds = (now - _STARTUP_TIME).total_seconds()
+    return {
+        "status": "healthy",
+        "service": "memora-graph-api",
+        "version": app.version,
+        "started_at": _STARTUP_TIME.isoformat(),
+        "uptime_seconds": round(uptime_seconds, 1),
+    }
