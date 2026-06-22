@@ -2,7 +2,7 @@ import os
 import math
 import numpy as np
 import requests
-from typing import List, Dict, Any, Tuple
+from typing import List, Dict, Any, Tuple, Optional
 from app.config import settings
 from app.utils import logger
 
