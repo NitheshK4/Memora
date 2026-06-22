@@ -193,6 +193,6 @@ class ChatRequest(BaseModel):
 class ChatResponse(BaseModel):
     response: str
     extracted_facts: List[ExtractedFact] = []
-    conflits_detected: List[ConflictInfo] = []
+    conflicts_detected: List[ConflictInfo] = []
     audit_logs: List[AuditEventSchema] = []
     active_memories: List[MemorySnapshot] = []

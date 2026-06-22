@@ -223,7 +223,7 @@ class MemoryAgent:
         return ChatResponse(
             response=response_text,
             extracted_facts=extracted_facts,
-            conflits_detected=conflicts_detected,
+            conflicts_detected=conflicts_detected,
             audit_logs=[AuditEventSchema.model_validate(e) for e in new_audit_logs],
             active_memories=[MemorySnapshot.model_validate(m) for m in updated_active_memories]
         )
