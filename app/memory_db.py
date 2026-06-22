@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import and_, or_, desc
 from app.models import DB_Memory, DB_AuditEvent, ExtractedFact
 from app.embeddings import similarity_service
+from app.utils import logger
 
 class MemoryDB:
     def __init__(self, db: Session):
@@ -66,7 +67,7 @@ class MemoryDB:
                 metadata={"user_id": user_id, "canonical_property": canonical_property}
             )
         except Exception as e:
-            print(f"Failed to sync fact to vector store: {e}")
+            logger.warning("Failed to sync fact to vector store: %s", e)
 
         return db_memory
 

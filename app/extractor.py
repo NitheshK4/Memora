@@ -5,6 +5,7 @@ import requests
 from typing import List, Dict, Any
 from app.config import settings
 from app.models import ExtractedFact
+from app.utils import logger
 
 class FactExtractor:
     def extract_facts(self, text: str) -> List[ExtractedFact]:
@@ -13,7 +14,7 @@ class FactExtractor:
                 return self._extract_with_llm(text)
             except Exception as e:
                 # Log error and fallback
-                print(f"LLM extraction failed, falling back to rules: {e}")
+                logger.warning("LLM extraction failed, falling back to rules: %s", e)
                 return self._extract_with_rules(text)
         else:
             return self._extract_with_rules(text)

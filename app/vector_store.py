@@ -4,6 +4,7 @@ import numpy as np
 import requests
 from typing import List, Dict, Any, Tuple
 from app.config import settings
+from app.utils import logger
 
 class LocalVectorStore:
     def __init__(self):
@@ -125,7 +126,7 @@ class OpenAIVectorStore:
                 "vector": np.array(vec)
             })
         except Exception as e:
-            print(f"OpenAI embedding generation failed, falling back to local: {e}")
+            logger.warning("OpenAI embedding generation failed, falling back to local: %s", e)
             self.local_store.add_document(doc_id, text, metadata)
 
     def search(self, query: str, user_id: str, limit: int = 5) -> List[Tuple[int, float]]:
@@ -145,7 +146,7 @@ class OpenAIVectorStore:
             results.sort(key=lambda x: x[1], reverse=True)
             return results[:limit]
         except Exception as e:
-            print(f"OpenAI embedding search failed, falling back to local: {e}")
+            logger.warning("OpenAI embedding search failed, falling back to local: %s", e)
             return self.local_store.search(query, user_id, limit)
 
 # Singleton local instance

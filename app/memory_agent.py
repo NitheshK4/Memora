@@ -15,6 +15,7 @@ from app.conflict_detector import conflict_detector
 from app.resolver import resolver
 from app.validator import validator
 import requests
+from app.utils import logger
 
 class MemoryAgent:
     def __init__(self, db: Session):
@@ -248,7 +249,7 @@ class MemoryAgent:
             try:
                 return self._generate_llm_response(message, active_memories, all_memories, recent_updates, dispute_alerts)
             except Exception as e:
-                print(f"LLM response failed: {e}")
+                logger.warning("LLM response generation failed, falling back to rules: %s", e)
 
         return self._generate_rules_response(message, is_question, active_memories, recent_updates, dispute_alerts)
 

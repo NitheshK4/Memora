@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from app.models import DB_Memory, DB_Entity, DB_Relationship, DB_AuditEvent
 from app.config import settings
 from app.memory_db import MemoryDB
+from app.utils import logger
 
 class ReflectionEngine:
     def reflect_and_consolidate(self, user_id: str, db: Session) -> List[str]:
@@ -99,7 +100,7 @@ class ReflectionEngine:
                     )
                     actions.append(f"Replaced {disp.canonical_property} with disputed value ({disp.value_canonical})")
             except Exception as e:
-                print(f"Reflection dispute resolution failed: {e}")
+                logger.error("Reflection dispute resolution failed: %s", e)
                 
         return actions
 

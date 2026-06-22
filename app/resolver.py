@@ -4,6 +4,7 @@ from typing import Optional
 from app.config import settings
 from app.models import ConflictInfo, ResolutionAction
 from app.property_registry import registry
+from app.utils import logger
 
 class ConflictResolver:
     def resolve(self, conflict: ConflictInfo) -> ResolutionAction:
@@ -11,7 +12,7 @@ class ConflictResolver:
             try:
                 return self._resolve_with_llm(conflict)
             except Exception as e:
-                print(f"LLM resolver failed, falling back to rules: {e}")
+                logger.warning("LLM resolver failed, falling back to rules: %s", e)
                 return self._resolve_with_rules(conflict)
         else:
             return self._resolve_with_rules(conflict)
