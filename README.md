@@ -5,6 +5,7 @@
 <img src="https://img.shields.io/badge/Streamlit-1.24+-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white"/>
 <img src="https://img.shields.io/badge/SQLite-003B57?style=for-the-badge&logo=sqlite&logoColor=white"/>
 <img src="https://img.shields.io/badge/Tests-26%20Passing-00C853?style=for-the-badge&logo=pytest&logoColor=white"/>
+<img src="https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge"/>
 
 # 🧠 Memora
 ### *Persistent & Reconcilable Memory Graph for LLM Agents*
