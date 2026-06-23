@@ -194,3 +194,70 @@ def health_check():
         "started_at": _STARTUP_TIME.isoformat(),
         "uptime_seconds": round(uptime_seconds, 1),
     }
+
+@app.get("/stats", tags=["System"])
+def get_user_stats(
+    current_user: str = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Returns memory graph statistics for the authenticated user."""
+    from app.models import DB_Memory, DB_Entity, DB_Relationship, DB_AuditEvent
+    from sqlalchemy import func
+
+    total_memories = db.query(func.count(DB_Memory.id)).filter(
+        DB_Memory.user_id == current_user
+    ).scalar() or 0
+
+    active_memories = db.query(func.count(DB_Memory.id)).filter(
+        DB_Memory.user_id == current_user,
+        DB_Memory.status == "active"
+    ).scalar() or 0
+
+    disputed_memories = db.query(func.count(DB_Memory.id)).filter(
+        DB_Memory.user_id == current_user,
+        DB_Memory.status == "disputed"
+    ).scalar() or 0
+
+    superseded_memories = db.query(func.count(DB_Memory.id)).filter(
+        DB_Memory.user_id == current_user,
+        DB_Memory.status == "superseded"
+    ).scalar() or 0
+
+    total_entities = db.query(func.count(DB_Entity.id)).filter(
+        DB_Entity.user_id == current_user
+    ).scalar() or 0
+
+    total_relationships = db.query(func.count(DB_Relationship.id)).filter(
+        DB_Relationship.user_id == current_user
+    ).scalar() or 0
+
+    total_audit_events = db.query(func.count(DB_AuditEvent.id)).filter(
+        DB_AuditEvent.user_id == current_user
+    ).scalar() or 0
+
+    # Property distribution
+    property_counts = db.query(
+        DB_Memory.canonical_property, func.count(DB_Memory.id)
+    ).filter(
+        DB_Memory.user_id == current_user,
+        DB_Memory.status == "active"
+    ).group_by(DB_Memory.canonical_property).all()
+
+    return {
+        "user_id": current_user,
+        "memories": {
+            "total": total_memories,
+            "active": active_memories,
+            "disputed": disputed_memories,
+            "superseded": superseded_memories,
+        },
+        "graph": {
+            "entities": total_entities,
+            "relationships": total_relationships,
+        },
+        "audit_events": total_audit_events,
+        "property_distribution": {
+            prop: count for prop, count in property_counts
+        },
+    }
+
