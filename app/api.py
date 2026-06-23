@@ -15,6 +15,7 @@ from app.graph_store import GraphStore
 from app.reflection import reflection_engine
 from app.auth import hash_password, verify_password, create_access_token, get_current_user
 from app.rate_limiter import RateLimiterMiddleware
+from app.security_headers import SecurityHeadersMiddleware
 
 # Create Database tables on startup
 Base.metadata.create_all(bind=engine)
@@ -40,6 +41,9 @@ app.add_middleware(
 
 # Rate limiting — 60 requests per minute per IP
 app.add_middleware(RateLimiterMiddleware, max_requests=60, window_seconds=60)
+
+# Security headers — OWASP recommended protections
+app.add_middleware(SecurityHeadersMiddleware)
 
 _STARTUP_TIME = datetime.now(timezone.utc)
 
