@@ -14,6 +14,7 @@ from app.memory_db import MemoryDB
 from app.graph_store import GraphStore
 from app.reflection import reflection_engine
 from app.auth import hash_password, verify_password, create_access_token, get_current_user
+from app.rate_limiter import RateLimiterMiddleware
 
 # Create Database tables on startup
 Base.metadata.create_all(bind=engine)
@@ -21,7 +22,7 @@ Base.metadata.create_all(bind=engine)
 app = FastAPI(
     title="Memora Graph API",
     description="Persistent and Reconcilable Memory Graph Layer for LLM Agents",
-    version="2.1.0"
+    version="2.2.0"
 )
 
 # CORS — allow the Streamlit frontend and local development origins
@@ -36,6 +37,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Rate limiting — 60 requests per minute per IP
+app.add_middleware(RateLimiterMiddleware, max_requests=60, window_seconds=60)
 
 _STARTUP_TIME = datetime.now(timezone.utc)
 
