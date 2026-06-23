@@ -4,7 +4,9 @@
 <img src="https://img.shields.io/badge/FastAPI-0.100+-009688?style=for-the-badge&logo=fastapi&logoColor=white"/>
 <img src="https://img.shields.io/badge/Streamlit-1.24+-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white"/>
 <img src="https://img.shields.io/badge/SQLite-003B57?style=for-the-badge&logo=sqlite&logoColor=white"/>
+<img src="https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white"/>
 <img src="https://img.shields.io/badge/Tests-26%20Passing-00C853?style=for-the-badge&logo=pytest&logoColor=white"/>
+<img src="https://img.shields.io/badge/Security-OWASP-5A29E4?style=for-the-badge&logo=owasp&logoColor=white"/>
 <img src="https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge"/>
 
 # 🧠 Memora
@@ -36,12 +38,15 @@ Traditional AI agents fail in four critical ways:
 - 🔐 **JWT Authentication** — Multi-user system with secure PBKDF2 password hashing
 - 🕸️ **Entity-Relationship Graph** — Visual node-edge memory graph with real-time updates
 - ⚖️ **Conflict Detection & Resolution** — Stability-aware rules distinguish stable facts (birthday) from time-varying facts (employer, city)
-- 🔍 **Fact Extraction** — Hybrid pipeline: LLM-based (OpenAI) with rule-based offline fallback
-- ✅ **Validation Layer** — Type checking and plausibility guards before any fact is stored
+- 🔍 **Fact Extraction** — Hybrid pipeline: LLM-based (OpenAI) with rule-based offline fallback for employer, city, birthday, pet, preferences, hobbies, and name
+- ✅ **Validation Layer** — Multi-rule validation with type checking, length limits, and plausibility guards for all properties
 - 📜 **Full Audit Trail** — Every memory state transition (created → superseded → disputed) is logged
 - 🔄 **Reflection Engine** — Background consolidation worker that resolves stale disputes
 - 🧮 **Local Vector Similarity** — Offline TF-IDF matching with no external dependencies
 - 📊 **Interactive Dashboard** — Dark-mode Streamlit UI with live graph visualization
+- 🛡️ **API Hardening** — Rate limiting (60 req/min), OWASP security headers, input sanitization
+- 📊 **Memory Analytics** — `/stats` endpoint with property distribution and graph metrics
+- 🐳 **Docker Compose** — One-command stack with Nginx proxy and optional Prometheus monitoring
 
 ---
 
@@ -174,6 +179,23 @@ cp .env.example .env
 
 Without a key, Memora runs fully **offline** using built-in rules.
 
+### 4. Docker Compose (Alternative)
+
+```bash
+# Start full stack (API + Frontend + Nginx)
+docker compose up --build
+
+# With Prometheus monitoring
+docker compose --profile monitoring up --build
+```
+
+| Service | URL |
+|---|---|
+| 🌐 **Proxy** | http://localhost |
+| 📊 **Dashboard** | http://localhost:8503 |
+| 📖 **API Docs** | http://localhost:8002/docs |
+| 📊 **Metrics** | http://localhost:9090 (monitoring profile) |
+
 ---
 
 ## 🧪 Testing
@@ -201,6 +223,7 @@ python tests/run_all_tests.py
 ```
 Memora/
 ├── app/
+│   ├── __init__.py         # Package metadata & version
 │   ├── api.py              # FastAPI routes (JWT-protected)
 │   ├── auth.py             # PBKDF2 hashing + pure-Python JWT
 │   ├── memory_agent.py     # Chat orchestrator
@@ -210,10 +233,13 @@ Memora/
 │   ├── conflict_detector.py# Contradiction detection
 │   ├── resolver.py         # Stability-aware resolution rules
 │   ├── reflection.py       # Background consolidation engine
-│   ├── validator.py        # Type & plausibility checks
+│   ├── validator.py        # Multi-rule type & plausibility checks
 │   ├── normalizer.py       # Value canonicalization
 │   ├── embeddings.py       # Local TF-IDF vector similarity
-│   └── property_registry.py# Stability metadata registry
+│   ├── vector_store.py     # TF-IDF + OpenAI embedding store
+│   ├── property_registry.py# Stability metadata registry
+│   ├── rate_limiter.py     # Sliding window rate limiting
+│   └── security_headers.py # OWASP security headers
 ├── frontend/
 │   └── app.py              # Streamlit dashboard
 ├── tests/                  # 26 automated tests
@@ -228,6 +254,10 @@ Memora/
 ├── deploy/
 │   ├── nginx.conf          # Reverse proxy config
 │   └── prometheus.yml      # Metrics scraper config
+├── docker-compose.yml      # Full-stack orchestration
+├── Dockerfile
+├── SECURITY.md             # Vulnerability disclosure policy
+├── CONTRIBUTING.md
 ├── requirements.txt
 └── start.sh                # One-command startup script
 ```
@@ -248,6 +278,7 @@ Memora/
 | `POST` | `/memories/clear` | Reset user memory graph |
 | `GET` | `/graph/snapshot` | ER graph node-edge data |
 | `POST` | `/reflection/trigger` | Run consolidation cycle |
+| `GET` | `/stats` | Memory analytics & property distribution |
 | `GET` | `/health` | Backend health check |
 
 ---
@@ -264,5 +295,6 @@ Memora/
 - [ ] LLM-driven dispute resolution with explanation generation
 - [ ] WebSocket-based real-time memory update streaming
 - [ ] Export memory graph as JSON / RDF
-
+- [ ] OAuth2 / SSO integration for enterprise deployments
+- [ ] Configurable rate limit tiers per user role
 
