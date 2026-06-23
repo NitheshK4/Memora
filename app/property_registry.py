@@ -100,5 +100,13 @@ class PropertyRegistry:
             resolution_strategy="merge",
             description="User hobbies and activities"
         ))
+        self.register(PropertyDefinition(
+            name="name",
+            stable=True,
+            multi_value=False,
+            expected_type="string",
+            resolution_strategy="dispute",
+            description="User's first name"
+        ))
 
 registry = PropertyRegistry()

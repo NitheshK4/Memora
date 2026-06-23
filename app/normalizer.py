@@ -38,6 +38,11 @@ PROPERTY_SYNONYMS = {
     "hobby": "hobby",
     "hobbies": "hobby",
     "interest": "hobby",
+
+    # name
+    "name": "name",
+    "first_name": "name",
+    "full_name": "name",
 }
 
 VALUE_CANONICALIZATION = {

@@ -164,6 +164,32 @@ class FactExtractor:
                 source_text=text
             ))
 
+        # 7. Hobby (e.g., "I enjoy painting", "My hobby is swimming", "I like to play chess")
+        m = re.search(r"i (?:enjoy|do|practice|play)\s+([A-Za-z0-9\s\.\-]+?)(?:\s+(?:on|every|at|with|in|for|and|but)\b|$)", text, re.IGNORECASE)
+        if not m:
+            m = re.search(r"my hobb(?:y|ies)\s+(?:is|are|include)\s+([A-Za-z0-9\s,\.\-]+?)(?:\s+(?:and|but|on|at)\b|$)", text, re.IGNORECASE)
+        if m:
+            hobby_val = m.group(1).strip().rstrip(",.")
+            if hobby_val and len(hobby_val) > 1:
+                facts.append(ExtractedFact(
+                    property_name="hobby",
+                    value_raw=hobby_val,
+                    confidence=0.8,
+                    source_text=text
+                ))
+
+        # 8. User's name (e.g., "My name is Alice", "I'm Bob", "Call me Charlie")
+        m = re.search(r"(?:my name is|i'm|i am|call me)\s+([A-Z][a-z]+)", text)
+        if m:
+            name_val = m.group(1).strip()
+            if len(name_val) >= 2:
+                facts.append(ExtractedFact(
+                    property_name="name",
+                    value_raw=name_val,
+                    confidence=0.9,
+                    source_text=text
+                ))
+
         return facts
 
 extractor = FactExtractor()
