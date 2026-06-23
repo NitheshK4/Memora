@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Optional, List
 from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, Boolean
 from app.db import Base
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 # ==========================================
 # SQLAlchemy Database Models
@@ -74,12 +74,12 @@ class DB_AuditEvent(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
 # ==========================================
-# Pydantic Schemas
+# Pydantic Schemas (with input validation)
 # ==========================================
 
 class UserRegister(BaseModel):
-    username: str
-    password: str
+    username: str = Field(..., min_length=3, max_length=32, pattern=r"^[a-zA-Z0-9_]+$")
+    password: str = Field(..., min_length=8, max_length=128)
 
 class UserLogin(BaseModel):
     username: str
@@ -186,9 +186,17 @@ class AuditEventSchema(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 class ChatRequest(BaseModel):
-    user_id: str
-    message: str
-    session_id: Optional[str] = "session_default"
+    user_id: str = Field(..., min_length=1, max_length=64)
+    message: str = Field(..., min_length=1, max_length=4096)
+    session_id: Optional[str] = Field(default="session_default", max_length=128)
+
+    @field_validator("message")
+    @classmethod
+    def strip_whitespace(cls, v: str) -> str:
+        stripped = v.strip()
+        if not stripped:
+            raise ValueError("Message cannot be empty or whitespace only")
+        return stripped
 
 class ChatResponse(BaseModel):
     response: str
