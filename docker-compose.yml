@@ -1,0 +1,75 @@
+# =============================================
+# Memora — Docker Compose Stack
+# =============================================
+# Full-stack orchestration: API + Frontend + Nginx reverse proxy
+#
+# Usage:
+#   docker compose up --build       # Start all services
+#   docker compose down             # Stop and remove containers
+#   docker compose logs -f memora   # Stream logs
+#
+# Ports:
+#   80   → Nginx reverse proxy (routes to API + Frontend)
+#   8002 → FastAPI backend (direct)
+#   8503 → Streamlit frontend (direct)
+
+services:
+  memora:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: memora-app
+    restart: unless-stopped
+    ports:
+      - "8002:8002"
+      - "8503:8503"
+    environment:
+      - DATABASE_URL=sqlite:///./memora.db
+      - PORT=8002
+      - HOST=0.0.0.0
+    env_file:
+      - .env
+    volumes:
+      - memora-data:/app/data
+      - memora-backups:/app/backups
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8002/health')"]
+      interval: 30s
+      timeout: 5s
+      start_period: 15s
+      retries: 3
+
+  nginx:
+    image: nginx:alpine
+    container_name: memora-proxy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./deploy/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      memora:
+        condition: service_healthy
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: memora-metrics
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./deploy/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    depends_on:
+      memora:
+        condition: service_healthy
+    profiles:
+      - monitoring
+
+volumes:
+  memora-data:
+    driver: local
+  memora-backups:
+    driver: local
+  prometheus-data:
+    driver: local
