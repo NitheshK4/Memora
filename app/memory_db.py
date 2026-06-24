@@ -1,4 +1,4 @@
-from datetime import datetime, UTC
+from datetime import datetime, timezone
 from typing import List, Optional, Dict
 from sqlalchemy.orm import Session
 from sqlalchemy import and_, or_, desc
@@ -46,8 +46,8 @@ class MemoryDB:
             source_text=fact.source_text,
             source_type="user_message",
             session_id=session_id,
-            created_at=datetime.now(UTC).replace(tzinfo=None),
-            effective_from=datetime.now(UTC).replace(tzinfo=None),
+            created_at=datetime.now(timezone.utc).replace(tzinfo=None),
+            effective_from=datetime.now(timezone.utc).replace(tzinfo=None),
             effective_to=None,
             status=status,
             version=version,
@@ -150,7 +150,7 @@ class MemoryDB:
             if effective_to:
                 memory.effective_to = effective_to
             elif status == "superseded" and not memory.effective_to:
-                memory.effective_to = datetime.now(UTC).replace(tzinfo=None)
+                memory.effective_to = datetime.now(timezone.utc).replace(tzinfo=None)
                 
             self.db.commit()
             self.db.refresh(memory)
@@ -174,7 +174,7 @@ class MemoryDB:
             new_value=new_value,
             reason=reason,
             resolver_type=resolver_type,
-            created_at=datetime.now(UTC).replace(tzinfo=None)
+            created_at=datetime.now(timezone.utc).replace(tzinfo=None)
         )
         self.db.add(db_event)
         self.db.commit()

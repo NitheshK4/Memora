@@ -1,7 +1,7 @@
 from typing import List, Dict, Any, Optional
 from sqlalchemy.orm import Session
 from app.models import DB_Entity, DB_Relationship, DB_Memory
-from datetime import datetime, UTC
+from datetime import datetime, timezone
 
 class GraphStore:
     def __init__(self, db: Session):
@@ -19,7 +19,7 @@ class GraphStore:
                 user_id=user_id,
                 entity_type=entity_type.strip().lower(),
                 name=name.strip(),
-                created_at=datetime.now(UTC).replace(tzinfo=None)
+                created_at=datetime.now(timezone.utc).replace(tzinfo=None)
             )
             self.db.add(entity)
             self.db.commit()
@@ -49,7 +49,7 @@ class GraphStore:
                 target_entity_id=target_id,
                 predicate=predicate.strip().lower(),
                 status="active",
-                created_at=datetime.now(UTC).replace(tzinfo=None)
+                created_at=datetime.now(timezone.utc).replace(tzinfo=None)
             )
             self.db.add(rel)
             self.db.commit()

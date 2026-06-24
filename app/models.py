@@ -1,11 +1,11 @@
-from datetime import datetime, UTC
+from datetime import datetime, timezone
 from typing import Optional, List
 from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, Boolean
 from app.db import Base
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 def get_utc_now():
-    return datetime.now(UTC).replace(tzinfo=None)
+    return datetime.now(timezone.utc).replace(tzinfo=None)
 
 # ==========================================
 # SQLAlchemy Database Models
