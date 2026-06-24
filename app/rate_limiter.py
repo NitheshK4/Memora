@@ -8,7 +8,8 @@ Configurable via environment variables or defaults.
 import time
 from collections import defaultdict
 from typing import Dict, List, Tuple
-from fastapi import Request, HTTPException, status
+from fastapi import Request, status
+from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from starlette.responses import Response
 from app.utils import logger
@@ -61,9 +62,9 @@ class RateLimiterMiddleware(BaseHTTPMiddleware):
                 len(self._request_log[client_ip]),
                 self.window_seconds,
             )
-            raise HTTPException(
+            return JSONResponse(
                 status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-                detail="Rate limit exceeded. Please try again later.",
+                content={"detail": "Rate limit exceeded. Please try again later."},
             )
 
         self._request_log[client_ip].append(time.time())
