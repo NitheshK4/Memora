@@ -1,8 +1,11 @@
-from datetime import datetime
+from datetime import datetime, UTC
 from typing import Optional, List
 from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, Boolean
 from app.db import Base
 from pydantic import BaseModel, ConfigDict, Field, field_validator
+
+def get_utc_now():
+    return datetime.now(UTC).replace(tzinfo=None)
 
 # ==========================================
 # SQLAlchemy Database Models
@@ -14,7 +17,7 @@ class DB_User(Base):
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String, unique=True, index=True, nullable=False)
     hashed_password = Column(String, nullable=False)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=get_utc_now)
 
 class DB_Entity(Base):
     __tablename__ = "entities"
@@ -23,7 +26,7 @@ class DB_Entity(Base):
     user_id = Column(String, index=True, nullable=False)
     entity_type = Column(String, nullable=False)  # person, organization, pet, place, self, etc.
     name = Column(String, nullable=False)          # Canonical name (e.g., 'Max', 'Google')
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=get_utc_now)
 
 class DB_Relationship(Base):
     __tablename__ = "relationships"
@@ -34,7 +37,7 @@ class DB_Relationship(Base):
     target_entity_id = Column(Integer, ForeignKey("entities.id"), nullable=False)
     predicate = Column(String, nullable=False)      # works_at, lives_in, has_pet, etc.
     status = Column(String, default="active")       # active, superseded, disputed
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=get_utc_now)
 
 class DB_Memory(Base):
     __tablename__ = "memories"
@@ -52,8 +55,8 @@ class DB_Memory(Base):
     source_text = Column(String, nullable=True)
     source_type = Column(String, default="user_message")
     session_id = Column(String, nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    effective_from = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=get_utc_now)
+    effective_from = Column(DateTime, default=get_utc_now)
     effective_to = Column(DateTime, nullable=True)
     status = Column(String, default="active")       # active, superseded, disputed, expired, rejected
     version = Column(Integer, default=1)
@@ -71,7 +74,7 @@ class DB_AuditEvent(Base):
     new_value = Column(String, nullable=True)
     reason = Column(String, nullable=True)
     resolver_type = Column(String, nullable=True)   # rule_recency, rule_stability, manual, llm_reasoning, etc.
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=get_utc_now)
 
 # ==========================================
 # Pydantic Schemas (with input validation)
