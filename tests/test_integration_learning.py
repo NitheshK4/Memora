@@ -28,3 +28,23 @@ def test_repeated_sessions_and_normalization(db_session):
     res3 = agent.process_message(user_id, "Where do I live?", "session_3")
     assert "New York" in res3.response
     assert "San Francisco" not in res3.response
+
+def test_fallback_name_and_hobbies(db_session):
+    agent = MemoryAgent(db_session)
+    user_id = "test_fallback_user"
+    
+    # 1. Provide name
+    r1 = agent.process_message(user_id, "my name is Alice", "s1")
+    assert "Alice" in r1.response
+    
+    # 2. Provide hobby
+    r2 = agent.process_message(user_id, "I enjoy painting", "s2")
+    assert "painting" in r2.response
+    
+    # 3. Ask name
+    r3 = agent.process_message(user_id, "What is my name?", "s3")
+    assert "Alice" in r3.response
+    
+    # 4. Ask hobbies
+    r4 = agent.process_message(user_id, "What are my hobbies?", "s4")
+    assert "painting" in r4.response

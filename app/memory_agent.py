@@ -333,13 +333,24 @@ class MemoryAgent:
                     return f"You currently live in {mem_map['city']}."
                 return "I don't know where you live. Which city do you live in?"
                 
+            if "name" in cleaned or "who am i" in cleaned:
+                if "name" in mem_map:
+                    return f"Your name is {mem_map['name']}."
+                return "I don't know your name. What is your name?"
+
+            if "hobby" in cleaned or "hobbies" in cleaned or "enjoy" in cleaned or "interest" in cleaned:
+                hobbies = [m.value_canonical for m in active_memories if m.canonical_property == "hobby"]
+                if hobbies:
+                    return f"Based on my memories, your hobbies include: {', '.join(hobbies)}."
+                return "I don't have any hobbies on file. What do you enjoy doing?"
+
             if "food" in cleaned or "like" in cleaned or "prefer" in cleaned or "hate" in cleaned:
                 prefs = [m.value_canonical for m in active_memories if m.canonical_property == "preference"]
                 if prefs:
                     return f"Based on my memories, you: {', '.join(prefs)}."
                 return "I don't have any preferences on file. What foods do you like or hate?"
 
-            return "I'm not sure about that. I only remember your birthday, dog's name, employer, city, and food preferences."
+            return "I'm not sure about that. I only remember your name, birthday, dog's name, employer, city, hobbies, and food preferences."
 
         if dispute_alerts:
             alerts = []
