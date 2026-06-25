@@ -20,10 +20,41 @@ from app.security_headers import SecurityHeadersMiddleware
 # Create Database tables on startup
 Base.metadata.create_all(bind=engine)
 
+from contextlib import asynccontextmanager
+
+def bootstrap_vector_store():
+    """Populates the vector store with existing active memories from the database."""
+    from app.utils import logger
+    from app.models import DB_Memory
+    from app.vector_store import vector_store
+    
+    db = next(get_db())
+    try:
+        active_memories = db.query(DB_Memory).filter(DB_Memory.status == "active").all()
+        logger.info("Bootstrapping vector store index with %d active memories.", len(active_memories))
+        
+        for mem in active_memories:
+            try:
+                vector_store.add_document(
+                    doc_id=mem.id,
+                    text=f"{mem.canonical_property}: {mem.value_canonical} ({mem.source_text or ''})",
+                    metadata={"user_id": mem.user_id, "canonical_property": mem.canonical_property}
+                )
+            except Exception as e:
+                logger.warning("Failed to bootstrap fact %d to vector store: %s", mem.id, e)
+    finally:
+        db.close()
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    bootstrap_vector_store()
+    yield
+
 app = FastAPI(
     title="Memora Graph API",
     description="Persistent and Reconcilable Memory Graph Layer for LLM Agents",
-    version="2.2.0"
+    version="2.2.0",
+    lifespan=lifespan
 )
 
 # CORS — allow the Streamlit frontend and local development origins
@@ -47,29 +78,7 @@ app.add_middleware(SecurityHeadersMiddleware)
 
 _STARTUP_TIME = datetime.now(timezone.utc)
 
-@app.on_event("startup")
-def bootstrap_vector_store():
-    """Populates the vector store with existing active memories from the database on startup."""
-    from app.utils import logger
-    from app.models import DB_Memory
-    from app.vector_store import vector_store
-    
-    db = next(get_db())
-    try:
-        active_memories = db.query(DB_Memory).filter(DB_Memory.status == "active").all()
-        logger.info("Bootstrapping vector store index with %d active memories.", len(active_memories))
-        
-        for mem in active_memories:
-            try:
-                vector_store.add_document(
-                    doc_id=mem.id,
-                    text=f"{mem.canonical_property}: {mem.value_canonical} ({mem.source_text or ''})",
-                    metadata={"user_id": mem.user_id, "canonical_property": mem.canonical_property}
-                )
-            except Exception as e:
-                logger.warning("Failed to bootstrap fact %d to vector store: %s", mem.id, e)
-    finally:
-        db.close()
+
 
 # ==========================================
 # Authentication Endpoints
