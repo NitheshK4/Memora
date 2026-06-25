@@ -31,8 +31,10 @@ class Validator:
                 error_type="value_too_long",
             )
 
-        # Reject values that are just numbers/symbols with no semantic meaning
-        if re.fullmatch(r"[\d\s\W]+", value_canonical):
+        # Reject values that are just numbers/symbols with no semantic meaning (except date types)
+        from app.property_registry import registry
+        prop_def = registry.get(canonical_property)
+        if prop_def.expected_type != "date" and re.fullmatch(r"[\d\s\W]+", value_canonical):
             return ValidationResult(
                 is_valid=False,
                 reason="Value must contain at least one alphabetic character",

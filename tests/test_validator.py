@@ -18,6 +18,30 @@ def test_validate_birthday_valid():
     res = validator.validate_fact(fact, "birthday", "July 15, 1990")
     assert res.is_valid is True
 
+def test_validate_birthday_numeric():
+    fact = ExtractedFact(
+        property_name="birthday",
+        value_raw="1990-07-15"
+    )
+    from app.normalizer import normalize_fact
+    canonical_prop, canonical_val = normalize_fact(fact.property_name, fact.value_raw)
+    assert canonical_prop == "birthday"
+    assert canonical_val == "July 15, 1990"
+    res = validator.validate_fact(fact, canonical_prop, canonical_val)
+    assert res.is_valid is True
+
+def test_validate_birthday_slashes():
+    fact = ExtractedFact(
+        property_name="birthday",
+        value_raw="07/15/1990"
+    )
+    from app.normalizer import normalize_fact
+    canonical_prop, canonical_val = normalize_fact(fact.property_name, fact.value_raw)
+    assert canonical_prop == "birthday"
+    assert canonical_val == "July-15-1990" or "July 15, 1990"
+    res = validator.validate_fact(fact, canonical_prop, canonical_val)
+    assert res.is_valid is True
+
 def test_validate_birthday_implausible_past():
     fact = ExtractedFact(
         property_name="birthday",

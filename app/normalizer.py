@@ -82,47 +82,71 @@ def normalize_date(raw_val: str) -> str:
     # Simple normalizer for common expressions
     val = raw_val.strip().lower()
     
-    # Match Month Day (e.g., july 15, july 15th, july 15, 2020)
+    # Month name mappings for normalization
+    months_map = {
+        "january": "January", "february": "February", "march": "March", "april": "April",
+        "may": "May", "june": "June", "july": "July", "august": "August",
+        "september": "September", "october": "October", "november": "November", "december": "December",
+        "jan": "January", "feb": "February", "mar": "March", "apr": "April",
+        "jun": "June", "jul": "July", "aug": "August", "sep": "September",
+        "oct": "October", "nov": "November", "dec": "December"
+    }
+
+    # Match Month Day Year or Month Day (e.g., july 15, july 15th, july 15, 1990)
     month_day_match = re.match(
-        r"^(january|february|march|april|may|june|july|august|september|october|november|december|jan|feb|mar|apr|jun|jul|aug|sep|oct|nov|dec)\.?\s+(\d+)(?:st|nd|rd|th)?(?:,?\s+\d{4})?$",
+        r"^(january|february|march|april|may|june|july|august|september|october|november|december|jan|feb|mar|apr|jun|jul|aug|sep|oct|nov|dec)\.?\s+(\d+)(?:st|nd|rd|th)?(?:,?\s+(\d{4}))?$",
         val
     )
     if month_day_match:
-        month = month_day_match.group(1).capitalize()
-        # Abbreviation maps
-        months_map = {
-            "Jan": "January", "Feb": "February", "Mar": "March", "Apr": "April", 
-            "Jun": "June", "Jul": "July", "Aug": "August", "Sep": "September", 
-            "Oct": "October", "Nov": "November", "Dec": "December"
-        }
-        month = months_map.get(month, month)
+        month = months_map.get(month_day_match.group(1)) or month_day_match.group(1).capitalize()
         day = int(month_day_match.group(2))
+        year = month_day_match.group(3)
+        if year:
+            return f"{month} {day}, {year}"
         return f"{month} {day}"
         
-    # Match Day Month (e.g., 15 july, 15th of july)
+    # Match Day Month Year or Day Month (e.g., 15 july, 15th of july, 15 july 1990)
     day_month_match = re.match(
-        r"^(\d+)(?:st|nd|rd|th)?\s+(?:of\s+)?(january|february|march|april|may|june|july|august|september|october|november|december|jan|feb|mar|apr|jun|jul|aug|sep|oct|nov|dec)\.?$",
+        r"^(\d+)(?:st|nd|rd|th)?\s+(?:of\s+)?(january|february|march|april|may|june|july|august|september|october|november|december|jan|feb|mar|apr|jun|jul|aug|sep|oct|nov|dec)\.?(?:\s+(\d{4}))?$",
         val
     )
     if day_month_match:
         day = int(day_month_match.group(1))
-        month = day_month_match.group(2).capitalize()
-        months_map = {
-            "Jan": "January", "Feb": "February", "Mar": "March", "Apr": "April", 
-            "Jun": "June", "Jul": "July", "Aug": "August", "Sep": "September", 
-            "Oct": "October", "Nov": "November", "Dec": "December"
-        }
-        month = months_map.get(month, month)
+        month = months_map.get(day_month_match.group(2)) or day_month_match.group(2).capitalize()
+        year = day_month_match.group(3)
+        if year:
+            return f"{month} {day}, {year}"
         return f"{month} {day}"
 
-    # Match numeric formats like MM/DD or MM-DD (ignoring year or keeping standard format)
-    numeric_match = re.match(r"^(\d{1,2})[/-](\d{1,2})(?:[/-]\d{2,4})?$", val)
+    # Match numeric formats:
+    # 1. YYYY-MM-DD or YYYY/MM/DD
+    iso_match = re.match(r"^(\d{4})[/-](\d{1,2})[/-](\d{1,2})$", val)
+    if iso_match:
+        year = iso_match.group(1)
+        m_idx = int(iso_match.group(2))
+        day = int(iso_match.group(3))
+        months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+        if 1 <= m_idx <= 12 and 1 <= day <= 31:
+            return f"{months[m_idx - 1]} {day}, {year}"
+
+    # 2. MM/DD/YYYY or DD/MM/YYYY or MM-DD-YYYY or DD-MM-YYYY
+    numeric_match = re.match(r"^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$", val)
     if numeric_match:
-        # Assume month/day or day/month. Let's do simple check:
         n1 = int(numeric_match.group(1))
         n2 = int(numeric_match.group(2))
+        year = numeric_match.group(3)
         months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
-        # If n1 <= 12 and n2 <= 31, assume MM/DD (US standard often used in conversational agents)
+        if n1 <= 12 and n2 <= 31:
+            return f"{months[n1 - 1]} {n2}, {year}"
+        elif n2 <= 12 and n1 <= 31:
+            return f"{months[n2 - 1]} {n1}, {year}"
+
+    # 3. MM/DD or DD/MM (without year)
+    numeric_no_year_match = re.match(r"^(\d{1,2})[/-](\d{1,2})$", val)
+    if numeric_no_year_match:
+        n1 = int(numeric_no_year_match.group(1))
+        n2 = int(numeric_no_year_match.group(2))
+        months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
         if n1 <= 12 and n2 <= 31:
             return f"{months[n1 - 1]} {n2}"
         elif n2 <= 12 and n1 <= 31:
