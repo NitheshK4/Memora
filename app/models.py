@@ -4,8 +4,13 @@ from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, Boo
 from app.db import Base
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-def get_utc_now():
+def get_utc_now() -> datetime:
+    """
+    Returns the current UTC datetime with timezone info removed.
+    This is used for SQLAlchemy compatibility across database backends.
+    """
     return datetime.now(timezone.utc).replace(tzinfo=None)
+
 
 # ==========================================
 # SQLAlchemy Database Models
