@@ -12,3 +12,12 @@ def setup_logging():
     return logging.getLogger("memora")
 
 logger = setup_logging()
+
+def truncate_string(text: str, max_len: int = 100) -> str:
+    """Truncate a string to a maximum length, appending '...' if truncated."""
+    if not text:
+        return ""
+    if len(text) <= max_len:
+        return text
+    return text[:max_len].strip() + "..."
+
