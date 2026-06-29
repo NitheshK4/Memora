@@ -198,3 +198,11 @@ class MemoryDB:
         self.db.query(DB_Relationship).filter(DB_Relationship.user_id == user_id).delete()
         self.db.query(DB_Entity).filter(DB_Entity.user_id == user_id).delete()
         self.db.commit()
+
+    def get_active_memories_count(self, user_id: str) -> int:
+        """Returns the total number of active memories for a given user."""
+        from sqlalchemy import func
+        return self.db.query(func.count(DB_Memory.id)).filter(
+            DB_Memory.user_id == user_id,
+            DB_Memory.status == "active"
+        ).scalar() or 0

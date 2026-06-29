@@ -71,3 +71,20 @@ def test_multi_user_isolation(db_session):
     
     assert act1.value_canonical == "San Francisco"
     assert act2.value_canonical == "New York"
+
+def test_get_active_memories_count(db_session):
+    mdb = MemoryDB(db_session)
+    assert mdb.get_active_memories_count("user3") == 0
+    
+    fact1 = ExtractedFact(property_name="city", value_raw="San Francisco")
+    mdb.store_fact("user3", fact1, "city", "San Francisco")
+    assert mdb.get_active_memories_count("user3") == 1
+    
+    fact2 = ExtractedFact(property_name="employer", value_raw="Google")
+    mdb.store_fact("user3", fact2, "employer", "Google")
+    assert mdb.get_active_memories_count("user3") == 2
+    
+    # Store another fact as non-active (e.g. superseded)
+    fact3 = ExtractedFact(property_name="employer", value_raw="Meta")
+    mem3 = mdb.store_fact("user3", fact3, "employer", "Meta", status="superseded")
+    assert mdb.get_active_memories_count("user3") == 2
