@@ -9,7 +9,7 @@ from app.utils import logger
 
 class FactExtractor:
     def extract_facts(self, text: str) -> List[ExtractedFact]:
-        if settings.OPENAI_API_KEY and settings.OPENAI_API_KEY.strip():
+        if settings.is_openai_configured:
             try:
                 return self._extract_with_llm(text)
             except Exception as e:
