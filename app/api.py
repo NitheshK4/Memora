@@ -222,14 +222,27 @@ def trigger_reflection(
     }
 
 @app.get("/health", tags=["System"])
-def health_check():
-    """Verify backend health status with uptime metadata."""
+def health_check(db: Session = Depends(get_db)):
+    """Verify backend health status with uptime metadata and database connectivity."""
+    from sqlalchemy import text
+    db_status = "healthy"
+    try:
+        db.execute(text("SELECT 1"))
+    except Exception as e:
+        from app.utils import logger
+        logger.error("Database health check failed: %s", e)
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail={"status": "unhealthy", "database": "unhealthy", "reason": str(e)}
+        )
+
     now = datetime.now(timezone.utc)
     uptime_seconds = (now - _STARTUP_TIME).total_seconds()
     return {
         "status": "healthy",
         "service": "memora-graph-api",
         "version": app.version,
+        "database": db_status,
         "started_at": _STARTUP_TIME.isoformat(),
         "uptime_seconds": round(uptime_seconds, 1),
     }
