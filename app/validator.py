@@ -2,6 +2,7 @@ import re
 from datetime import datetime
 from typing import Optional
 from app.models import ExtractedFact, ValidationResult
+from app.utils import sanitize_input_text
 
 
 class Validator:
@@ -18,6 +19,9 @@ class Validator:
     def validate_fact(
         self, fact: ExtractedFact, canonical_property: str, value_canonical: str
     ) -> ValidationResult:
+        # Sanitize input text first
+        value_canonical = sanitize_input_text(value_canonical)
+
         # ── Universal checks ─────────────────────────────────
         if not value_canonical or not value_canonical.strip():
             return ValidationResult(
@@ -29,6 +33,14 @@ class Validator:
                 is_valid=False,
                 reason=f"Value exceeds maximum length ({self.MAX_VALUE_LENGTH} chars)",
                 error_type="value_too_long",
+            )
+
+        # Check for HTML/Script tag injection to prevent XSS/injection payloads
+        if re.search(r"<[a-zA-Z/!][^>]*>", value_canonical):
+            return ValidationResult(
+                is_valid=False,
+                reason="Value cannot contain HTML or script tags",
+                error_type="html_injection",
             )
 
         # Reject values that are just numbers/symbols with no semantic meaning (except date types)

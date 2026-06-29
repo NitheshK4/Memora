@@ -68,3 +68,31 @@ def test_validate_empty_value():
     res = validator.validate_fact(fact, "city", "")
     assert res.is_valid is False
     assert "empty" in res.reason
+
+def test_validate_html_injection():
+    fact = ExtractedFact(
+        property_name="city",
+        value_raw="<script>alert('XSS')</script>"
+    )
+    res = validator.validate_fact(fact, "city", "<script>alert('XSS')</script>")
+    assert res.is_valid is False
+    assert res.error_type == "html_injection"
+    assert "HTML or script tags" in res.reason
+
+    fact2 = ExtractedFact(
+        property_name="employer",
+        value_raw="Google <b>Inc</b>"
+    )
+    res2 = validator.validate_fact(fact2, "employer", "Google <b>Inc</b>")
+    assert res2.is_valid is False
+    assert res2.error_type == "html_injection"
+
+def test_validate_sanitized_fact():
+    # Test that validator sanitizes inputs (e.g. collapsing spaces)
+    fact = ExtractedFact(
+        property_name="employer",
+        value_raw="Google   Corp"
+    )
+    # The validate_fact method will sanitize value_canonical inside
+    res = validator.validate_fact(fact, "employer", "Google   Corp")
+    assert res.is_valid is True
