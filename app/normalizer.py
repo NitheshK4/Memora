@@ -43,6 +43,19 @@ PROPERTY_SYNONYMS = {
     "name": "name",
     "first_name": "name",
     "full_name": "name",
+
+    # email
+    "email": "email",
+    "email_address": "email",
+    "emailaddress": "email",
+    "mail": "email",
+
+    # phone
+    "phone": "phone",
+    "phone_number": "phone",
+    "phonenumber": "phone",
+    "telephone": "phone",
+    "mobile": "phone",
 }
 
 VALUE_CANONICALIZATION = {
@@ -159,7 +172,15 @@ def normalize_value(prop_canonical: str, raw_val: str) -> str:
     
     if prop_canonical == "birthday":
         return normalize_date(cleaned)
-        
+
+    if prop_canonical == "email":
+        return cleaned.lower()
+
+    if prop_canonical == "phone":
+        is_intl = cleaned.startswith("+")
+        digits = re.sub(r"\D", "", cleaned)
+        return f"+{digits}" if is_intl else digits
+
     # Check string canonical mappings
     mapping = VALUE_CANONICALIZATION.get(prop_canonical, {})
     return mapping.get(cleaned.lower(), cleaned)
