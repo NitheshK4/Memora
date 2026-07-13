@@ -59,6 +59,7 @@ class Validator:
             "name": self._validate_name,
             "employer": self._validate_employer,
             "city": self._validate_city,
+            "email": self._validate_email,
         }
 
         validator_fn = property_validators.get(canonical_property)
@@ -143,6 +144,19 @@ class Validator:
                 is_valid=False,
                 reason="City name contains invalid characters",
                 error_type="city_invalid_chars",
+            )
+        return ValidationResult(is_valid=True)
+
+    # ────────────────────────────────────────────────────────
+    # Email validation
+    # ────────────────────────────────────────────────────────
+    def _validate_email(self, email_val: str) -> ValidationResult:
+        pattern = r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$"
+        if not re.match(pattern, email_val.strip()):
+            return ValidationResult(
+                is_valid=False,
+                reason="Invalid email address format",
+                error_type="email_invalid_format",
             )
         return ValidationResult(is_valid=True)
 

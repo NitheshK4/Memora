@@ -108,5 +108,13 @@ class PropertyRegistry:
             resolution_strategy="dispute",
             description="User's first name"
         ))
+        self.register(PropertyDefinition(
+            name="email",
+            stable=False,
+            multi_value=False,
+            expected_type="email",
+            resolution_strategy="recency",
+            description="User's email address"
+        ))
 
 registry = PropertyRegistry()

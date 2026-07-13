@@ -96,3 +96,21 @@ def test_validate_sanitized_fact():
     # The validate_fact method will sanitize value_canonical inside
     res = validator.validate_fact(fact, "employer", "Google   Corp")
     assert res.is_valid is True
+
+def test_validate_email_valid():
+    fact = ExtractedFact(
+        property_name="email",
+        value_raw="test@example.com"
+    )
+    res = validator.validate_fact(fact, "email", "test@example.com")
+    assert res.is_valid is True
+
+def test_validate_email_invalid():
+    fact = ExtractedFact(
+        property_name="email",
+        value_raw="invalid-email"
+    )
+    res = validator.validate_fact(fact, "email", "invalid-email")
+    assert res.is_valid is False
+    assert res.error_type == "email_invalid_format"
+

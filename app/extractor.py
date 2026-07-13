@@ -190,6 +190,16 @@ class FactExtractor:
                     source_text=text
                 ))
 
+        # 9. Email (e.g., "My email is test@example.com", "contact me at test@example.com")
+        m = re.search(r"(?:my email is|email me at|contact me at|email is)\s+([a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+)", text, re.IGNORECASE)
+        if m:
+            facts.append(ExtractedFact(
+                property_name="email",
+                value_raw=m.group(1).strip(),
+                confidence=0.9,
+                source_text=text
+            ))
+
         return facts
 
 extractor = FactExtractor()
