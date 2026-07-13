@@ -116,5 +116,13 @@ class PropertyRegistry:
             resolution_strategy="recency",
             description="User's email address"
         ))
+        self.register(PropertyDefinition(
+            name="phone",
+            stable=False,
+            multi_value=False,
+            expected_type="phone",
+            resolution_strategy="recency",
+            description="User's phone number"
+        ))
 
 registry = PropertyRegistry()

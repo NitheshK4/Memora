@@ -200,6 +200,16 @@ class FactExtractor:
                 source_text=text
             ))
 
+        # 10. Phone (e.g., "My phone number is 123-456-7890", "call me at +1234567890")
+        m = re.search(r"(?:my phone number is|my phone is|call me at|reach me at|phone number is|phone is)\s+(\+?[\d\-\(\)\s]{7,20})", text, re.IGNORECASE)
+        if m:
+            facts.append(ExtractedFact(
+                property_name="phone",
+                value_raw=m.group(1).strip(),
+                confidence=0.9,
+                source_text=text
+            ))
+
         return facts
 
 extractor = FactExtractor()

@@ -46,7 +46,7 @@ class Validator:
         # Reject values that are just numbers/symbols with no semantic meaning (except date types)
         from app.property_registry import registry
         prop_def = registry.get(canonical_property)
-        if prop_def.expected_type != "date" and re.fullmatch(r"[\d\s\W]+", value_canonical):
+        if prop_def.expected_type not in ("date", "phone") and re.fullmatch(r"[\d\s\W]+", value_canonical):
             return ValidationResult(
                 is_valid=False,
                 reason="Value must contain at least one alphabetic character",
@@ -60,6 +60,7 @@ class Validator:
             "employer": self._validate_employer,
             "city": self._validate_city,
             "email": self._validate_email,
+            "phone": self._validate_phone,
         }
 
         validator_fn = property_validators.get(canonical_property)
@@ -157,6 +158,27 @@ class Validator:
                 is_valid=False,
                 reason="Invalid email address format",
                 error_type="email_invalid_format",
+            )
+        return ValidationResult(is_valid=True)
+
+    # ────────────────────────────────────────────────────────
+    # Phone validation
+    # ────────────────────────────────────────────────────────
+    def _validate_phone(self, phone_val: str) -> ValidationResult:
+        # Keep only digits to check length plausibility
+        digits_only = re.sub(r"\D", "", phone_val)
+        if len(digits_only) < 7 or len(digits_only) > 15:
+            return ValidationResult(
+                is_valid=False,
+                reason="Phone number must contain between 7 and 15 digits",
+                error_type="phone_invalid_length",
+            )
+        # Allow optional prefix '+' followed by digits, dashes, spaces, parentheses
+        if not re.fullmatch(r"\+?[\d\-\(\)\s]+", phone_val.strip()):
+            return ValidationResult(
+                is_valid=False,
+                reason="Phone number contains invalid characters",
+                error_type="phone_invalid_chars",
             )
         return ValidationResult(is_valid=True)
 

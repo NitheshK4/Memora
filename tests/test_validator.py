@@ -114,3 +114,30 @@ def test_validate_email_invalid():
     assert res.is_valid is False
     assert res.error_type == "email_invalid_format"
 
+def test_validate_phone_valid():
+    fact = ExtractedFact(
+        property_name="phone",
+        value_raw="+1 (555) 123-4567"
+    )
+    res = validator.validate_fact(fact, "phone", "+1 (555) 123-4567")
+    assert res.is_valid is True
+
+def test_validate_phone_invalid_length():
+    fact = ExtractedFact(
+        property_name="phone",
+        value_raw="123"
+    )
+    res = validator.validate_fact(fact, "phone", "123")
+    assert res.is_valid is False
+    assert res.error_type == "phone_invalid_length"
+
+def test_validate_phone_invalid_chars():
+    fact = ExtractedFact(
+        property_name="phone",
+        value_raw="123-456-7890abc"
+    )
+    res = validator.validate_fact(fact, "phone", "123-456-7890abc")
+    assert res.is_valid is False
+    assert res.error_type == "phone_invalid_chars"
+
+
