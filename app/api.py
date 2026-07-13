@@ -3,7 +3,7 @@ from fastapi import FastAPI, Depends, HTTPException, Query, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 from app.db import engine, Base, get_db
 from app.models import (
     ChatRequest, ChatResponse, MemorySnapshot, AuditEventSchema, 
@@ -145,12 +145,13 @@ def chat(
 
 @app.get("/memories", response_model=List[MemorySnapshot], tags=["Memories"])
 def get_active_memories(
+    status: Optional[str] = Query("active", description="Filter memories by status (active, superseded, disputed, or all)"),
     current_user: str = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Retrieve all current active memories for the authenticated user."""
+    """Retrieve memories for the authenticated user, optionally filtered by status."""
     memory_db = MemoryDB(db)
-    memories = memory_db.get_user_profile(current_user)
+    memories = memory_db.get_user_memories_by_status(current_user, status)
     return [MemorySnapshot.model_validate(m) for m in memories]
 
 @app.get("/memories/history", response_model=List[MemorySnapshot], tags=["Memories"])

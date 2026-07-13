@@ -88,3 +88,32 @@ def test_get_active_memories_count(db_session):
     fact3 = ExtractedFact(property_name="employer", value_raw="Meta")
     mem3 = mdb.store_fact("user3", fact3, "employer", "Meta", status="superseded")
     assert mdb.get_active_memories_count("user3") == 2
+
+def test_get_user_memories_by_status(db_session):
+    mdb = MemoryDB(db_session)
+    user = "status_user"
+    
+    fact1 = ExtractedFact(property_name="city", value_raw="SF")
+    mdb.store_fact(user, fact1, "city", "San Francisco", status="active")
+    
+    fact2 = ExtractedFact(property_name="employer", value_raw="Google")
+    mdb.store_fact(user, fact2, "employer", "Google", status="superseded")
+    
+    fact3 = ExtractedFact(property_name="birthday", value_raw="July 15")
+    mdb.store_fact(user, fact3, "birthday", "July 15", status="disputed")
+    
+    active_mems = mdb.get_user_memories_by_status(user, "active")
+    assert len(active_mems) == 1
+    assert active_mems[0].canonical_property == "city"
+    
+    superseded_mems = mdb.get_user_memories_by_status(user, "superseded")
+    assert len(superseded_mems) == 1
+    assert superseded_mems[0].canonical_property == "employer"
+    
+    disputed_mems = mdb.get_user_memories_by_status(user, "disputed")
+    assert len(disputed_mems) == 1
+    assert disputed_mems[0].canonical_property == "birthday"
+    
+    all_mems = mdb.get_user_memories_by_status(user, "all")
+    assert len(all_mems) == 3
+

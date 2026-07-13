@@ -132,6 +132,13 @@ class MemoryDB:
             DB_Memory.status == "active"
         ).all()
 
+    def get_user_memories_by_status(self, user_id: str, status: Optional[str] = None) -> List[DB_Memory]:
+        """Retrieve memories for a given user, optionally filtering by status."""
+        query = self.db.query(DB_Memory).filter(DB_Memory.user_id == user_id)
+        if status and status.lower() != "all":
+            query = query.filter(DB_Memory.status == status.lower())
+        return query.all()
+
     def update_fact_status(
         self,
         memory_id: int,
