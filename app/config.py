@@ -8,6 +8,8 @@ class Settings(BaseSettings):
     PORT: int = 8000
     HOST: str = "0.0.0.0"
     RATE_LIMIT_MAX_REQUESTS: int = 60
+    RATE_LIMIT_PREMIUM_MAX_REQUESTS: int = 180
+    RATE_LIMIT_ADMIN_MAX_REQUESTS: int = 1000
     RATE_LIMIT_WINDOW_SECONDS: int = 60
     
     @property
