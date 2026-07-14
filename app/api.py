@@ -211,11 +211,16 @@ def get_graph_snapshot(
 
 @app.get("/graph/export", tags=["Graph"])
 def export_graph(
+    format: Optional[str] = Query("json", description="Export format: json or rdf"),
     current_user: str = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Exports the complete memory graph for the user as JSON."""
+    """Exports the complete memory graph for the user as JSON or RDF Turtle."""
     graph_store = GraphStore(db)
+    if format and format.lower() == "rdf":
+        from fastapi import Response
+        rdf_content = graph_store.export_to_rdf_turtle(current_user)
+        return Response(content=rdf_content, media_type="text/turtle")
     return graph_store.get_graph_snapshot(current_user)
 
 @app.post("/reflection/trigger", tags=["Reflection"])

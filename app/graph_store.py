@@ -98,3 +98,52 @@ class GraphStore:
             "nodes": nodes,
             "edges": edges
         }
+
+    def export_to_rdf_turtle(self, user_id: str) -> str:
+        """
+        Exports the user's graph as an RDF Turtle format string.
+        """
+        entities = self.db.query(DB_Entity).filter(DB_Entity.user_id == user_id).all()
+        relationships = self.db.query(DB_Relationship).filter(
+            DB_Relationship.user_id == user_id,
+            DB_Relationship.status == "active"
+        ).all()
+
+        lines = [
+            "@prefix memora: <http://memora.ai/schema#> .",
+            "@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .",
+            "@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .",
+            "@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .",
+            ""
+        ]
+
+        # Map entities by ID to write their properties
+        for e in entities:
+            # Gather properties for each entity
+            properties = self.db.query(DB_Memory).filter(
+                DB_Memory.entity_id == e.id,
+                DB_Memory.status == "active"
+            ).all()
+
+            def escape_literal(val: str) -> str:
+                return val.replace('"', '\\"')
+
+            type_capitalized = e.entity_type.capitalize()
+            lines.append(f"memora:entity_{e.id} a memora:{type_capitalized} ;")
+            lines.append(f"    rdfs:label \"{escape_literal(e.name)}\" ;")
+
+            for p in properties:
+                val_escaped = escape_literal(p.value_canonical)
+                lines.append(f"    memora:{p.canonical_property} \"{val_escaped}\" ;")
+
+            if lines[-1].endswith(";"):
+                lines[-1] = lines[-1][:-2] + " ."
+            else:
+                lines[-1] = lines[-1][:-2] + " ."
+            lines.append("")
+
+        for r in relationships:
+            lines.append(f"memora:entity_{r.source_entity_id} memora:{r.predicate} memora:entity_{r.target_entity_id} .")
+
+        return "\n".join(lines).strip() + "\n"
+

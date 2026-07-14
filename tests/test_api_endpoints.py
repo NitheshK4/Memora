@@ -86,4 +86,36 @@ def test_export_graph_json(db_session):
 
     app.dependency_overrides.clear()
 
+def test_export_graph_rdf(db_session):
+    from app.auth import get_current_user
+    from app.db import get_db
+    from app.memory_db import MemoryDB
+    from app.models import ExtractedFact
+    from app.graph_store import GraphStore
+
+    app.dependency_overrides[get_current_user] = lambda: "test_export_user"
+    app.dependency_overrides[get_db] = lambda: db_session
+
+    client = TestClient(app)
+    
+    gs = GraphStore(db_session)
+    user_node = gs.get_or_create_entity("test_export_user", "self", "test_export_user")
+    org_node = gs.get_or_create_entity("test_export_user", "organization", "Google")
+    gs.get_or_create_relationship("test_export_user", user_node.id, org_node.id, "works_at")
+    
+    mdb = MemoryDB(db_session)
+    fact = ExtractedFact(property_name="employer", value_raw="Google")
+    mdb.store_fact("test_export_user", fact, "employer", "Google", status="active", db_entity_id=user_node.id)
+
+    resp = client.get("/graph/export?format=rdf")
+    assert resp.status_code == 200
+    assert "text/turtle" in resp.headers["content-type"]
+    text = resp.text
+    assert "@prefix memora:" in text
+    assert "memora:entity_" in text
+    assert "works_at" in text
+
+    app.dependency_overrides.clear()
+
+
 
