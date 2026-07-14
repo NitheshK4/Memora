@@ -62,6 +62,7 @@ class Validator:
             "email": self._validate_email,
             "phone": self._validate_phone,
             "website": self._validate_website,
+            "job_title": self._validate_job_title,
         }
 
         validator_fn = property_validators.get(canonical_property)
@@ -193,6 +194,24 @@ class Validator:
                 is_valid=False,
                 reason="Invalid website URL format",
                 error_type="website_invalid_format",
+            )
+        return ValidationResult(is_valid=True)
+
+    # ────────────────────────────────────────────────────────
+    # Job Title validation
+    # ────────────────────────────────────────────────────────
+    def _validate_job_title(self, job_val: str) -> ValidationResult:
+        if len(job_val.strip()) < 2:
+            return ValidationResult(
+                is_valid=False,
+                reason="Job title must be at least 2 characters",
+                error_type="job_title_too_short",
+            )
+        if not re.fullmatch(r"[A-Za-z\s.\-'\&/]+", job_val.strip()):
+            return ValidationResult(
+                is_valid=False,
+                reason="Job title contains invalid characters",
+                error_type="job_title_invalid_chars",
             )
         return ValidationResult(is_valid=True)
 

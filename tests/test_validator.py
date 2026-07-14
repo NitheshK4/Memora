@@ -151,5 +151,23 @@ def test_validate_website_invalid():
     assert res.is_valid is False
     assert res.error_type == "website_invalid_format"
 
+def test_validate_job_title_valid():
+    fact = ExtractedFact(property_name="job_title", value_raw="Senior Software Engineer")
+    res = validator.validate_fact(fact, "job_title", "Senior Software Engineer")
+    assert res.is_valid is True
+
+def test_validate_job_title_too_short():
+    fact = ExtractedFact(property_name="job_title", value_raw="E")
+    res = validator.validate_fact(fact, "job_title", "E")
+    assert res.is_valid is False
+    assert res.error_type == "job_title_too_short"
+
+def test_validate_job_title_invalid_chars():
+    fact = ExtractedFact(property_name="job_title", value_raw="Engineer #1")
+    res = validator.validate_fact(fact, "job_title", "Engineer #1")
+    assert res.is_valid is False
+    assert res.error_type == "job_title_invalid_chars"
+
+
 
 
