@@ -140,4 +140,16 @@ def test_validate_phone_invalid_chars():
     assert res.is_valid is False
     assert res.error_type == "phone_invalid_chars"
 
+def test_validate_website_valid():
+    fact = ExtractedFact(property_name="website", value_raw="https://google.com/search")
+    res = validator.validate_fact(fact, "website", "https://google.com/search")
+    assert res.is_valid is True
+
+def test_validate_website_invalid():
+    fact = ExtractedFact(property_name="website", value_raw="invalid-url")
+    res = validator.validate_fact(fact, "website", "invalid-url")
+    assert res.is_valid is False
+    assert res.error_type == "website_invalid_format"
+
+
 

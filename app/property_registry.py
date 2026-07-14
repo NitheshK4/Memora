@@ -124,5 +124,13 @@ class PropertyRegistry:
             resolution_strategy="recency",
             description="User's phone number"
         ))
+        self.register(PropertyDefinition(
+            name="website",
+            stable=False,
+            multi_value=False,
+            expected_type="website",
+            resolution_strategy="recency",
+            description="User's personal or professional website"
+        ))
 
 registry = PropertyRegistry()

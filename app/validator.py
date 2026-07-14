@@ -61,6 +61,7 @@ class Validator:
             "city": self._validate_city,
             "email": self._validate_email,
             "phone": self._validate_phone,
+            "website": self._validate_website,
         }
 
         validator_fn = property_validators.get(canonical_property)
@@ -179,6 +180,19 @@ class Validator:
                 is_valid=False,
                 reason="Phone number contains invalid characters",
                 error_type="phone_invalid_chars",
+            )
+        return ValidationResult(is_valid=True)
+
+    # ────────────────────────────────────────────────────────
+    # Website validation
+    # ────────────────────────────────────────────────────────
+    def _validate_website(self, website_val: str) -> ValidationResult:
+        pattern = r"^(https?://)?([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(/.*)?$"
+        if not re.match(pattern, website_val.strip()):
+            return ValidationResult(
+                is_valid=False,
+                reason="Invalid website URL format",
+                error_type="website_invalid_format",
             )
         return ValidationResult(is_valid=True)
 

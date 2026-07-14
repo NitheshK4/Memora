@@ -62,3 +62,10 @@ def test_normalize_fact_helper():
     prop2, val2 = normalize_fact("phone_number", "+1-800-555-0199")
     assert prop2 == "phone"
     assert val2 == "+18005550199"
+
+def test_normalize_website():
+    assert normalize_value("website", "  HTTPS://Google.com/Path  ") == "https://google.com/path"
+    prop, val = normalize_fact("web_page", "  HTTP://Meta.com ")
+    assert prop == "website"
+    assert val == "http://meta.com"
+

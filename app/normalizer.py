@@ -56,6 +56,12 @@ PROPERTY_SYNONYMS = {
     "phonenumber": "phone",
     "telephone": "phone",
     "mobile": "phone",
+
+    # website
+    "website": "website",
+    "web_page": "website",
+    "url": "website",
+    "site": "website",
 }
 
 VALUE_CANONICALIZATION = {
@@ -180,6 +186,9 @@ def normalize_value(prop_canonical: str, raw_val: str) -> str:
         is_intl = cleaned.startswith("+")
         digits = re.sub(r"\D", "", cleaned)
         return f"+{digits}" if is_intl else digits
+
+    if prop_canonical == "website":
+        return cleaned.lower()
 
     # Check string canonical mappings
     mapping = VALUE_CANONICALIZATION.get(prop_canonical, {})
