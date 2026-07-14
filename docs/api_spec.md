@@ -130,3 +130,37 @@ The Memora backend is built using FastAPI and JWT bearer credentials.
       "message": "Consolidation complete. 1 optimizations executed."
     }
     ```
+
+### 4. Export Graph representation (Protected)
+*   **Endpoint**: `GET /graph/export`
+*   **Query Parameters**:
+    *   `format` (string, optional): Export format. Options: `json` (default) or `rdf`.
+*   **Response (JSON)**:
+    ```json
+    {
+      "nodes": [
+        {
+          "id": 1,
+          "label": "alice (self)",
+          "type": "self",
+          "name": "alice",
+          "properties": {
+            "employer": "Google"
+          }
+        }
+      ],
+      "edges": []
+    }
+    ```
+*   **Response (RDF Turtle)**:
+    ```turtle
+    @prefix memora: <http://memora.ai/schema#> .
+    @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+    @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+    @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+    memora:entity_1 a memora:Self ;
+        rdfs:label "alice" ;
+        memora:employer "Google" .
+    ```
+
