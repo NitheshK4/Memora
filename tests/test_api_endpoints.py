@@ -57,3 +57,33 @@ def test_get_memories_filtering(db_session):
     # Clean overrides
     app.dependency_overrides.clear()
 
+def test_export_graph_json(db_session):
+    from app.auth import get_current_user
+    from app.db import get_db
+    from app.memory_db import MemoryDB
+    from app.models import ExtractedFact
+    from app.graph_store import GraphStore
+
+    app.dependency_overrides[get_current_user] = lambda: "test_export_user"
+    app.dependency_overrides[get_db] = lambda: db_session
+
+    client = TestClient(app)
+    
+    # Pre-populate some facts and entities to build the graph
+    gs = GraphStore(db_session)
+    user_node = gs.get_or_create_entity("test_export_user", "self", "test_export_user")
+    
+    mdb = MemoryDB(db_session)
+    fact = ExtractedFact(property_name="employer", value_raw="Google")
+    mdb.store_fact("test_export_user", fact, "employer", "Google", status="active", db_entity_id=user_node.id)
+
+    resp = client.get("/graph/export")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert "nodes" in data
+    assert "edges" in data
+    assert len(data["nodes"]) > 0
+
+    app.dependency_overrides.clear()
+
+

@@ -209,6 +209,15 @@ def get_graph_snapshot(
     graph_store = GraphStore(db)
     return graph_store.get_graph_snapshot(current_user)
 
+@app.get("/graph/export", tags=["Graph"])
+def export_graph(
+    current_user: str = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Exports the complete memory graph for the user as JSON."""
+    graph_store = GraphStore(db)
+    return graph_store.get_graph_snapshot(current_user)
+
 @app.post("/reflection/trigger", tags=["Reflection"])
 def trigger_reflection(
     current_user: str = Depends(get_current_user),
