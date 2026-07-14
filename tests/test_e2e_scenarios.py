@@ -93,3 +93,28 @@ def test_scenario_preference_reversal(db_session):
     assert old_pref.status == "superseded"
     assert new_pref.status == "active"
     assert "likes spicy food" in r2.response or "updated" in r2.response
+
+def test_scenario_multi_property_extraction(db_session):
+    agent = MemoryAgent(db_session)
+    user_id = "e2e_user_5"
+    
+    # Send a dialog that has employer and city first
+    agent.process_message(user_id, "I work at Google in San Francisco", "session_multi")
+    # Send a dialog that has email and phone
+    agent.process_message(user_id, "my email is alice@example.com and my phone number is +1-800-555-0199", "session_multi")
+    
+    # Verify DB records
+    active_mems = db_session.query(DB_Memory).filter(
+        DB_Memory.user_id == user_id,
+        DB_Memory.status == "active"
+    ).all()
+    
+    # We expect 4 active memories
+    assert len(active_mems) == 4
+    
+    properties = {m.canonical_property: m.value_canonical for m in active_mems}
+    assert properties["employer"] == "Google"
+    assert properties["city"] == "San Francisco"
+    assert properties["email"] == "alice@example.com"
+    assert properties["phone"] == "+18005550199"
+
