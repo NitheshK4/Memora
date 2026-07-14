@@ -146,12 +146,23 @@ def chat(
 @app.get("/memories", response_model=List[MemorySnapshot], tags=["Memories"])
 def get_active_memories(
     status: Optional[str] = Query("active", description="Filter memories by status (active, superseded, disputed, or all)"),
+    limit: int = Query(100, description="Max number of memories to return", ge=1, le=1000),
+    offset: int = Query(0, description="Offset for pagination", ge=0),
+    sort_by: str = Query("created_at", description="Field to sort by (created_at, canonical_property, etc.)"),
+    sort_order: str = Query("desc", description="Sort order: asc or desc"),
     current_user: str = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Retrieve memories for the authenticated user, optionally filtered by status."""
+    """Retrieve memories for the authenticated user, optionally filtered by status, with sorting and pagination."""
     memory_db = MemoryDB(db)
-    memories = memory_db.get_user_memories_by_status(current_user, status)
+    memories = memory_db.get_user_memories_by_status(
+        user_id=current_user,
+        status=status,
+        limit=limit,
+        offset=offset,
+        sort_by=sort_by,
+        sort_order=sort_order
+    )
     return [MemorySnapshot.model_validate(m) for m in memories]
 
 @app.get("/memories/history", response_model=List[MemorySnapshot], tags=["Memories"])

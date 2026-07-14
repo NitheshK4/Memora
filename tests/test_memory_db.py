@@ -117,3 +117,31 @@ def test_get_user_memories_by_status(db_session):
     all_mems = mdb.get_user_memories_by_status(user, "all")
     assert len(all_mems) == 3
 
+def test_get_user_memories_pagination_sorting(db_session):
+    mdb = MemoryDB(db_session)
+    user = "paginate_user"
+    
+    fact1 = ExtractedFact(property_name="city", value_raw="SF")
+    mdb.store_fact(user, fact1, "city", "San Francisco", status="active")
+    
+    # Sleep/wait is not strictly needed if we just verify by values/sorting
+    fact2 = ExtractedFact(property_name="employer", value_raw="Google")
+    mdb.store_fact(user, fact2, "employer", "Google", status="active")
+    
+    # Test limit and offset
+    mems_limit = mdb.get_user_memories_by_status(user, "active", limit=1)
+    assert len(mems_limit) == 1
+    
+    # Test sorting by canonical_property ascending
+    mems_asc = mdb.get_user_memories_by_status(user, "active", sort_by="canonical_property", sort_order="asc")
+    assert len(mems_asc) == 2
+    assert mems_asc[0].canonical_property == "city"
+    assert mems_asc[1].canonical_property == "employer"
+    
+    # Test sorting by canonical_property descending
+    mems_desc = mdb.get_user_memories_by_status(user, "active", sort_by="canonical_property", sort_order="desc")
+    assert len(mems_desc) == 2
+    assert mems_desc[0].canonical_property == "employer"
+    assert mems_desc[1].canonical_property == "city"
+
+

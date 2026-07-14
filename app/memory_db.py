@@ -132,11 +132,28 @@ class MemoryDB:
             DB_Memory.status == "active"
         ).all()
 
-    def get_user_memories_by_status(self, user_id: str, status: Optional[str] = None) -> List[DB_Memory]:
-        """Retrieve memories for a given user, optionally filtering by status."""
+    def get_user_memories_by_status(
+        self, 
+        user_id: str, 
+        status: Optional[str] = None,
+        limit: int = 100,
+        offset: int = 0,
+        sort_by: str = "created_at",
+        sort_order: str = "desc"
+    ) -> List[DB_Memory]:
+        """Retrieve memories for a given user, optionally filtering by status, with sorting and pagination."""
         query = self.db.query(DB_Memory).filter(DB_Memory.user_id == user_id)
         if status and status.lower() != "all":
             query = query.filter(DB_Memory.status == status.lower())
+            
+        from sqlalchemy import asc, desc
+        sort_col = getattr(DB_Memory, sort_by, DB_Memory.created_at)
+        if sort_order.lower() == "asc":
+            query = query.order_by(asc(sort_col))
+        else:
+            query = query.order_by(desc(sort_col))
+            
+        query = query.offset(offset).limit(limit)
         return query.all()
 
     def update_fact_status(
