@@ -22,6 +22,7 @@ class DB_User(Base):
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String, unique=True, index=True, nullable=False)
     hashed_password = Column(String, nullable=False)
+    role = Column(String, default="standard", nullable=False)
     created_at = Column(DateTime, default=get_utc_now)
 
 class DB_Entity(Base):
@@ -88,6 +89,7 @@ class DB_AuditEvent(Base):
 class UserRegister(BaseModel):
     username: str = Field(..., min_length=3, max_length=32, pattern=r"^[a-zA-Z0-9_]+$")
     password: str = Field(..., min_length=8, max_length=128)
+    role: Optional[str] = "standard"
 
 class UserLogin(BaseModel):
     username: str

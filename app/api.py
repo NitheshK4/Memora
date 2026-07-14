@@ -22,6 +22,26 @@ from app.config import settings
 # Create Database tables on startup
 Base.metadata.create_all(bind=engine)
 
+def check_and_migrate_db():
+    """Automatically run schema migration to add 'role' column to SQLite db if missing."""
+    from sqlalchemy import text
+    from app.utils import logger
+    db = next(get_db())
+    try:
+        res = db.execute(text("PRAGMA table_info(users)")).fetchall()
+        columns = [r[1] for r in res]
+        if "role" not in columns:
+            logger.info("Migrating database: adding 'role' column to 'users' table")
+            db.execute(text("ALTER TABLE users ADD COLUMN role VARCHAR DEFAULT 'standard'"))
+            db.commit()
+    except Exception as e:
+        logger.error("Failed to migrate database for user role: %s", e)
+    finally:
+        db.close()
+
+# Run SQLite migrations
+check_and_migrate_db()
+
 from contextlib import asynccontextmanager
 
 def bootstrap_vector_store():
@@ -99,7 +119,8 @@ def register_user(user_data: UserRegister, db: Session = Depends(get_db)):
     
     new_user = DB_User(
         username=user_data.username,
-        hashed_password=hash_password(user_data.password)
+        hashed_password=hash_password(user_data.password),
+        role=user_data.role or "standard"
     )
     db.add(new_user)
     db.commit()
