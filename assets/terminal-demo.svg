@@ -1,0 +1,298 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 850 580">
+  <style>
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+    @keyframes l1  { 0%,3%{opacity:0} 4%{opacity:1} }
+    @keyframes l2  { 0%,7%{opacity:0} 8%{opacity:1} }
+    @keyframes l3  { 0%,11%{opacity:0} 12%{opacity:1} }
+    @keyframes l4  { 0%,15%{opacity:0} 16%{opacity:1} }
+    @keyframes l5  { 0%,19%{opacity:0} 20%{opacity:1} }
+    @keyframes l6  { 0%,23%{opacity:0} 24%{opacity:1} }
+    @keyframes l7  { 0%,27%{opacity:0} 28%{opacity:1} }
+    @keyframes l8  { 0%,31%{opacity:0} 32%{opacity:1} }
+    @keyframes l9  { 0%,35%{opacity:0} 36%{opacity:1} }
+    @keyframes l10 { 0%,39%{opacity:0} 40%{opacity:1} }
+    @keyframes l11 { 0%,43%{opacity:0} 44%{opacity:1} }
+    @keyframes l12 { 0%,47%{opacity:0} 48%{opacity:1} }
+    @keyframes l13 { 0%,51%{opacity:0} 52%{opacity:1} }
+    @keyframes l14 { 0%,55%{opacity:0} 56%{opacity:1} }
+    @keyframes l15 { 0%,59%{opacity:0} 60%{opacity:1} }
+    @keyframes l16 { 0%,63%{opacity:0} 64%{opacity:1} }
+    @keyframes l17 { 0%,67%{opacity:0} 68%{opacity:1} }
+    @keyframes l18 { 0%,71%{opacity:0} 72%{opacity:1} }
+    @keyframes l19 { 0%,75%{opacity:0} 76%{opacity:1} }
+    @keyframes l20 { 0%,79%{opacity:0} 80%{opacity:1} }
+    @keyframes l21 { 0%,83%{opacity:0} 84%{opacity:1} }
+    @keyframes l22 { 0%,87%{opacity:0} 88%{opacity:1} }
+    @keyframes pulse { 0%,100%{opacity:0.6} 50%{opacity:1} }
+
+    .term-bg { fill:#0d1117; }
+    .title-bar { fill:#161b22; }
+    .btn-r { fill:#ff5f57; }
+    .btn-y { fill:#febc2e; }
+    .btn-g { fill:#28c840; }
+    .title-text { fill:#8b949e; font-family:'Courier New',monospace; font-size:12px; }
+
+    text { font-family:'Courier New','Fira Code',monospace; font-size:13.5px; }
+    .prompt { fill:#66fcf1; }
+    .cmd { fill:#c9d1d9; }
+    .dim { fill:#484f58; }
+    .green { fill:#28c840; }
+    .cyan { fill:#66fcf1; }
+    .yellow { fill:#febc2e; }
+    .red { fill:#ff7b72; }
+    .magenta { fill:#d2a8ff; }
+    .white { fill:#e6edf3; }
+    .bold { font-weight:bold; }
+    .cursor { fill:#66fcf1; animation:blink 1s step-end infinite; }
+
+    .ln1  { opacity:0; animation:l1  12s infinite; }
+    .ln2  { opacity:0; animation:l2  12s infinite; }
+    .ln3  { opacity:0; animation:l3  12s infinite; }
+    .ln4  { opacity:0; animation:l4  12s infinite; }
+    .ln5  { opacity:0; animation:l5  12s infinite; }
+    .ln6  { opacity:0; animation:l6  12s infinite; }
+    .ln7  { opacity:0; animation:l7  12s infinite; }
+    .ln8  { opacity:0; animation:l8  12s infinite; }
+    .ln9  { opacity:0; animation:l9  12s infinite; }
+    .ln10 { opacity:0; animation:l10 12s infinite; }
+    .ln11 { opacity:0; animation:l11 12s infinite; }
+    .ln12 { opacity:0; animation:l12 12s infinite; }
+    .ln13 { opacity:0; animation:l13 12s infinite; }
+    .ln14 { opacity:0; animation:l14 12s infinite; }
+    .ln15 { opacity:0; animation:l15 12s infinite; }
+    .ln16 { opacity:0; animation:l16 12s infinite; }
+    .ln17 { opacity:0; animation:l17 12s infinite; }
+    .ln18 { opacity:0; animation:l18 12s infinite; }
+    .ln19 { opacity:0; animation:l19 12s infinite; }
+    .ln20 { opacity:0; animation:l20 12s infinite; }
+    .ln21 { opacity:0; animation:l21 12s infinite; }
+    .ln22 { opacity:0; animation:l22 12s infinite; }
+  </style>
+
+  <!-- Terminal window -->
+  <rect class="term-bg" x="0" y="0" width="850" height="580" rx="10"/>
+  <rect class="title-bar" x="0" y="0" width="850" height="36" rx="10"/>
+  <rect class="title-bar" x="0" y="16" width="850" height="20"/>
+  <circle class="btn-r" cx="20" cy="18" r="6"/>
+  <circle class="btn-y" cx="40" cy="18" r="6"/>
+  <circle class="btn-g" cx="60" cy="18" r="6"/>
+  <text class="title-text" x="400" y="22" text-anchor="middle">memora — session demo</text>
+
+  <!-- Line 1: Boot -->
+  <g class="ln1">
+    <text x="20" y="65">
+      <tspan class="dim">$</tspan>
+      <tspan class="cmd"> ./start.sh</tspan>
+    </text>
+  </g>
+
+  <!-- Line 2 -->
+  <g class="ln2">
+    <text x="20" y="88">
+      <tspan class="green bold">✓ </tspan>
+      <tspan class="green">Memora v2.2.0 loaded</tspan>
+      <tspan class="dim"> ─── graph: 0 nodes, 0 edges</tspan>
+    </text>
+  </g>
+
+  <!-- Line 3 -->
+  <g class="ln3">
+    <text x="20" y="111">
+      <tspan class="green bold">✓ </tspan>
+      <tspan class="green">API listening</tspan>
+      <tspan class="dim"> ─────── http://localhost:8002</tspan>
+    </text>
+  </g>
+
+  <!-- Line 4 -->
+  <g class="ln4">
+    <text x="20" y="134">
+      <tspan class="green bold">✓ </tspan>
+      <tspan class="green">Dashboard ready</tspan>
+      <tspan class="dim"> ──── http://localhost:8503</tspan>
+    </text>
+  </g>
+
+  <!-- Line 5: Divider -->
+  <g class="ln5">
+    <text x="20" y="160" class="dim">──────────────────────────────────────────────────────────────</text>
+  </g>
+
+  <!-- Line 6: User input -->
+  <g class="ln6">
+    <text x="20" y="183">
+      <tspan class="cyan bold">user@memora</tspan>
+      <tspan class="dim">:</tspan>
+      <tspan class="magenta">~</tspan>
+      <tspan class="dim">$ </tspan>
+      <tspan class="white">chat "I work at Google in San Francisco"</tspan>
+    </text>
+  </g>
+
+  <!-- Line 7: Extract -->
+  <g class="ln7">
+    <text x="20" y="210">
+      <tspan class="dim">  ├─ </tspan>
+      <tspan class="cyan">extract</tspan>
+      <tspan class="dim"> ──── </tspan>
+      <tspan class="white">employer:Google, city:San Francisco</tspan>
+    </text>
+  </g>
+
+  <!-- Line 8: Normalize -->
+  <g class="ln8">
+    <text x="20" y="233">
+      <tspan class="dim">  ├─ </tspan>
+      <tspan class="cyan">normalize</tspan>
+      <tspan class="dim"> ── </tspan>
+      <tspan class="white">SF → San Francisco</tspan>
+      <tspan class="green"> ✓</tspan>
+    </text>
+  </g>
+
+  <!-- Line 9: Validate -->
+  <g class="ln9">
+    <text x="20" y="256">
+      <tspan class="dim">  ├─ </tspan>
+      <tspan class="cyan">validate</tspan>
+      <tspan class="dim"> ─── </tspan>
+      <tspan class="green">passed</tspan>
+      <tspan class="dim"> (2/2 rules)</tspan>
+    </text>
+  </g>
+
+  <!-- Line 10: Store -->
+  <g class="ln10">
+    <text x="20" y="279">
+      <tspan class="dim">  └─ </tspan>
+      <tspan class="cyan">store</tspan>
+      <tspan class="dim"> ────── </tspan>
+      <tspan class="green bold">2 facts created</tspan>
+      <tspan class="dim"> [status: active]</tspan>
+    </text>
+  </g>
+
+  <!-- Line 11: Divider -->
+  <g class="ln11">
+    <text x="20" y="305" class="dim">──────────────────────────────────────────────────────────────</text>
+  </g>
+
+  <!-- Line 12: Second user input -->
+  <g class="ln12">
+    <text x="20" y="328">
+      <tspan class="cyan bold">user@memora</tspan>
+      <tspan class="dim">:</tspan>
+      <tspan class="magenta">~</tspan>
+      <tspan class="dim">$ </tspan>
+      <tspan class="white">chat "I moved to NYC for my new role at Meta"</tspan>
+    </text>
+  </g>
+
+  <!-- Line 13: Extract -->
+  <g class="ln13">
+    <text x="20" y="355">
+      <tspan class="dim">  ├─ </tspan>
+      <tspan class="cyan">extract</tspan>
+      <tspan class="dim"> ──── </tspan>
+      <tspan class="white">employer:Meta, city:New York</tspan>
+    </text>
+  </g>
+
+  <!-- Line 14: Conflict! -->
+  <g class="ln14">
+    <text x="20" y="378">
+      <tspan class="dim">  ├─ </tspan>
+      <tspan class="yellow bold">conflict</tspan>
+      <tspan class="dim"> ─── </tspan>
+      <tspan class="yellow">⚡ 2 conflicts detected</tspan>
+    </text>
+  </g>
+
+  <!-- Line 15: Resolve employer -->
+  <g class="ln15">
+    <text x="20" y="401">
+      <tspan class="dim">  │  ├─ </tspan>
+      <tspan class="white">employer</tspan>
+      <tspan class="dim"> [time-varying] </tspan>
+      <tspan class="red">Google→superseded</tspan>
+      <tspan class="dim"> │ </tspan>
+      <tspan class="green">Meta→active</tspan>
+    </text>
+  </g>
+
+  <!-- Line 16: Resolve city -->
+  <g class="ln16">
+    <text x="20" y="424">
+      <tspan class="dim">  │  └─ </tspan>
+      <tspan class="white">city</tspan>
+      <tspan class="dim">     [time-varying] </tspan>
+      <tspan class="red">SF→superseded</tspan>
+      <tspan class="dim">    │ </tspan>
+      <tspan class="green">NYC→active</tspan>
+    </text>
+  </g>
+
+  <!-- Line 17: Resolve -->
+  <g class="ln17">
+    <text x="20" y="447">
+      <tspan class="dim">  ├─ </tspan>
+      <tspan class="cyan">resolve</tspan>
+      <tspan class="dim"> ──── </tspan>
+      <tspan class="green bold">auto-superseded</tspan>
+      <tspan class="dim"> (stability: time-varying)</tspan>
+    </text>
+  </g>
+
+  <!-- Line 18: Audit -->
+  <g class="ln18">
+    <text x="20" y="470">
+      <tspan class="dim">  └─ </tspan>
+      <tspan class="cyan">audit</tspan>
+      <tspan class="dim"> ────── </tspan>
+      <tspan class="magenta">4 events logged</tspan>
+      <tspan class="dim"> ──── trail: complete</tspan>
+    </text>
+  </g>
+
+  <!-- Line 19: Divider -->
+  <g class="ln19">
+    <text x="20" y="496" class="dim">──────────────────────────────────────────────────────────────</text>
+  </g>
+
+  <!-- Line 20: Graph -->
+  <g class="ln20">
+    <text x="20" y="519">
+      <tspan class="cyan bold">graph</tspan>
+      <tspan class="dim"> ── nodes: </tspan>
+      <tspan class="green bold">3</tspan>
+      <tspan class="dim">  edges: </tspan>
+      <tspan class="green bold">4</tspan>
+      <tspan class="dim">  active: </tspan>
+      <tspan class="green bold">2</tspan>
+      <tspan class="dim">  superseded: </tspan>
+      <tspan class="yellow bold">2</tspan>
+      <tspan class="dim">  disputed: </tspan>
+      <tspan class="white bold">0</tspan>
+    </text>
+  </g>
+
+  <!-- Line 21: Memory clean -->
+  <g class="ln21">
+    <text x="20" y="542">
+      <tspan class="green bold">✓ </tspan>
+      <tspan class="green">memory graph consistent</tspan>
+      <tspan class="dim"> ── zero hallucination risk</tspan>
+    </text>
+  </g>
+
+  <!-- Cursor blinking on last line -->
+  <g class="ln22">
+    <text x="20" y="565">
+      <tspan class="cyan bold">user@memora</tspan>
+      <tspan class="dim">:</tspan>
+      <tspan class="magenta">~</tspan>
+      <tspan class="dim">$ </tspan>
+    </text>
+    <rect class="cursor" x="138" y="553" width="8" height="16" rx="1"/>
+  </g>
+</svg>

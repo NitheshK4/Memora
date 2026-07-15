@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 850 200">
+  <style>
+    @keyframes fadeUp1 { 0%,5%{opacity:0;transform:translateY(10px)} 10%,100%{opacity:1;transform:translateY(0)} }
+    @keyframes fadeUp2 { 0%,12%{opacity:0;transform:translateY(10px)} 17%,100%{opacity:1;transform:translateY(0)} }
+    @keyframes fadeUp3 { 0%,19%{opacity:0;transform:translateY(8px)} 24%,100%{opacity:1;transform:translateY(0)} }
+    @keyframes glowPulse { 0%,100%{opacity:0.15} 50%{opacity:0.35} }
+    @keyframes dashMove { 0%{stroke-dashoffset:200} 100%{stroke-dashoffset:0} }
+    @keyframes nodePulse { 0%,100%{r:3;opacity:0.6} 50%{r:4.5;opacity:1} }
+
+    .bg { fill:#0d1117; }
+
+    /* Neural net lines */
+    .net-line { stroke:#66fcf1; stroke-width:0.5; opacity:0.12; fill:none; stroke-dasharray:6,4; animation:dashMove 8s linear infinite; }
+    .net-line2 { animation-duration:12s; animation-direction:reverse; }
+    .net-line3 { animation-duration:10s; }
+    .net-node { fill:#66fcf1; animation:nodePulse 3s ease-in-out infinite; }
+    .net-node2 { animation-delay:0.5s; }
+    .net-node3 { animation-delay:1s; }
+    .net-node4 { animation-delay:1.5s; }
+    .net-node5 { animation-delay:2s; }
+    .net-node6 { animation-delay:0.8s; }
+    .net-node7 { animation-delay:1.3s; }
+
+    /* Glow circle */
+    .glow { fill:url(#glowGrad); animation:glowPulse 4s ease-in-out infinite; }
+
+    /* Title */
+    .title { font-family:'Courier New',monospace; font-size:56px; font-weight:bold; fill:#e6edf3; letter-spacing:8px; opacity:0; animation:fadeUp1 3s ease forwards; }
+    .subtitle { font-family:'Courier New',monospace; font-size:14px; fill:#66fcf1; letter-spacing:3px; opacity:0; animation:fadeUp2 3s ease forwards; }
+    .desc { font-family:'Courier New',monospace; font-size:11.5px; fill:#484f58; opacity:0; animation:fadeUp3 3s ease forwards; }
+
+    /* Version badge */
+    .badge-bg { fill:#161b22; stroke:#30363d; stroke-width:1; rx:4; }
+    .badge-text { font-family:'Courier New',monospace; font-size:10px; fill:#66fcf1; }
+  </style>
+
+  <defs>
+    <radialGradient id="glowGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#66fcf1"/>
+      <stop offset="100%" stop-color="#0d1117"/>
+    </radialGradient>
+  </defs>
+
+  <rect class="bg" width="850" height="200" rx="8"/>
+
+  <!-- Neural network background decoration -->
+  <!-- Lines -->
+  <line class="net-line" x1="50" y1="30" x2="200" y2="90"/>
+  <line class="net-line net-line2" x1="80" y1="160" x2="220" y2="70"/>
+  <line class="net-line net-line3" x1="150" y1="40" x2="280" y2="120"/>
+  <line class="net-line" x1="630" y1="50" x2="750" y2="130"/>
+  <line class="net-line net-line2" x1="680" y1="160" x2="800" y2="60"/>
+  <line class="net-line net-line3" x1="600" y1="100" x2="780" y2="40"/>
+  <line class="net-line" x1="100" y1="100" x2="250" y2="150"/>
+  <line class="net-line net-line2" x1="650" y1="90" x2="810" y2="140"/>
+
+  <!-- Nodes -->
+  <circle class="net-node" cx="50" cy="30" r="3"/>
+  <circle class="net-node net-node2" cx="200" cy="90" r="3"/>
+  <circle class="net-node net-node3" cx="80" cy="160" r="2.5"/>
+  <circle class="net-node net-node4" cx="150" cy="40" r="2"/>
+  <circle class="net-node net-node5" cx="750" cy="130" r="3"/>
+  <circle class="net-node net-node6" cx="680" cy="160" r="2.5"/>
+  <circle class="net-node net-node7" cx="800" cy="60" r="2"/>
+  <circle class="net-node net-node3" cx="630" cy="50" r="3"/>
+  <circle class="net-node net-node5" cx="280" cy="120" r="2"/>
+  <circle class="net-node net-node2" cx="810" cy="140" r="2.5"/>
+  <circle class="net-node net-node4" cx="250" cy="150" r="2"/>
+  <circle class="net-node net-node6" cx="100" cy="100" r="2.5"/>
+
+  <!-- Center glow -->
+  <ellipse class="glow" cx="425" cy="95" rx="180" ry="80"/>
+
+  <!-- Text -->
+  <text class="title" x="425" y="95" text-anchor="middle">MEMORA</text>
+  <text class="subtitle" x="425" y="125" text-anchor="middle">MEMORY GRAPH FOR LLM AGENTS</text>
+  <text class="desc" x="425" y="155" text-anchor="middle">remember · reconcile · validate · explain</text>
+
+  <!-- Version badge -->
+  <rect class="badge-bg" x="373" y="165" width="105" height="20"/>
+  <text class="badge-text" x="425" y="179" text-anchor="middle">▸ v2.2.0 stable</text>
+</svg>

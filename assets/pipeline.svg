@@ -1,0 +1,136 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 850 340">
+  <style>
+    @keyframes nodeAppear1 { 0%,2%{opacity:0} 5%,100%{opacity:1} }
+    @keyframes nodeAppear2 { 0%,8%{opacity:0} 12%,100%{opacity:1} }
+    @keyframes nodeAppear3 { 0%,15%{opacity:0} 19%,100%{opacity:1} }
+    @keyframes nodeAppear4 { 0%,22%{opacity:0} 26%,100%{opacity:1} }
+    @keyframes nodeAppear5 { 0%,29%{opacity:0} 33%,100%{opacity:1} }
+    @keyframes nodeAppear6 { 0%,36%{opacity:0} 40%,100%{opacity:1} }
+    @keyframes nodeAppear7 { 0%,43%{opacity:0} 47%,100%{opacity:1} }
+    @keyframes dataFlow { 0%{stroke-dashoffset:20} 100%{stroke-dashoffset:0} }
+    @keyframes sideAppear { 0%,50%{opacity:0} 55%,100%{opacity:1} }
+    @keyframes pulseGlow { 0%,100%{opacity:0.3} 50%{opacity:0.7} }
+
+    .bg { fill:#0d1117; }
+    text { font-family:'Courier New',monospace; }
+    .node-bg { rx:6; stroke-width:1.5; }
+    .node-label { font-size:11px; fill:#e6edf3; font-weight:bold; }
+    .node-sub { font-size:9px; fill:#484f58; }
+    .arrow { stroke:#30363d; stroke-width:1.5; fill:none; marker-end:url(#arrowhead); stroke-dasharray:6,3; animation:dataFlow 1.5s linear infinite; }
+    .arrow-side { stroke:#30363d; stroke-width:1; fill:none; stroke-dasharray:4,3; animation:dataFlow 2s linear infinite; }
+
+    .n1 { opacity:0; animation:nodeAppear1 6s ease forwards; }
+    .n2 { opacity:0; animation:nodeAppear2 6s ease forwards; }
+    .n3 { opacity:0; animation:nodeAppear3 6s ease forwards; }
+    .n4 { opacity:0; animation:nodeAppear4 6s ease forwards; }
+    .n5 { opacity:0; animation:nodeAppear5 6s ease forwards; }
+    .n6 { opacity:0; animation:nodeAppear6 6s ease forwards; }
+    .n7 { opacity:0; animation:nodeAppear7 6s ease forwards; }
+    .side { opacity:0; animation:sideAppear 6s ease forwards; }
+
+    .glow-dot { animation:pulseGlow 2s ease-in-out infinite; }
+    .glow-dot2 { animation-delay:0.7s; }
+    .glow-dot3 { animation-delay:1.4s; }
+  </style>
+
+  <defs>
+    <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#484f58"/>
+    </marker>
+  </defs>
+
+  <rect class="bg" width="850" height="340" rx="8"/>
+
+  <!-- Main pipeline: 7 nodes in a horizontal flow, staggered vertically -->
+
+  <!-- Node 1: User Message -->
+  <g class="n1">
+    <rect class="node-bg" x="20" y="140" width="100" height="50" fill="#161b22" stroke="#66fcf1"/>
+    <text class="node-label" x="70" y="162" text-anchor="middle">💬 Message</text>
+    <text class="node-sub" x="70" y="178" text-anchor="middle">user input</text>
+  </g>
+
+  <!-- Arrow 1→2 -->
+  <g class="n2"><line class="arrow" x1="120" y1="165" x2="148" y2="165"/></g>
+
+  <!-- Node 2: Extractor -->
+  <g class="n2">
+    <rect class="node-bg" x="150" y="140" width="100" height="50" fill="#161b22" stroke="#0f3460"/>
+    <text class="node-label" x="200" y="162" text-anchor="middle">🔍 Extract</text>
+    <text class="node-sub" x="200" y="178" text-anchor="middle">LLM / regex</text>
+  </g>
+
+  <!-- Arrow 2→3 -->
+  <g class="n3"><line class="arrow" x1="250" y1="165" x2="278" y2="165"/></g>
+
+  <!-- Node 3: Normalizer -->
+  <g class="n3">
+    <rect class="node-bg" x="280" y="140" width="100" height="50" fill="#161b22" stroke="#0f3460"/>
+    <text class="node-label" x="330" y="162" text-anchor="middle">📐 Normalize</text>
+    <text class="node-sub" x="330" y="178" text-anchor="middle">SF→San Fran</text>
+  </g>
+
+  <!-- Arrow 3→4 -->
+  <g class="n4"><line class="arrow" x1="380" y1="165" x2="408" y2="165"/></g>
+
+  <!-- Node 4: Validator -->
+  <g class="n4">
+    <rect class="node-bg" x="410" y="140" width="100" height="50" fill="#161b22" stroke="#28c840"/>
+    <text class="node-label" x="460" y="162" text-anchor="middle">✅ Validate</text>
+    <text class="node-sub" x="460" y="178" text-anchor="middle">plausibility</text>
+  </g>
+
+  <!-- Arrow 4→5 -->
+  <g class="n5"><line class="arrow" x1="510" y1="165" x2="538" y2="165"/></g>
+
+  <!-- Node 5: Conflict Detector -->
+  <g class="n5">
+    <rect class="node-bg" x="540" y="140" width="100" height="50" fill="#161b22" stroke="#febc2e"/>
+    <text class="node-label" x="590" y="162" text-anchor="middle">⚡ Conflict</text>
+    <text class="node-sub" x="590" y="178" text-anchor="middle">detect</text>
+    <circle class="glow-dot" cx="640" cy="140" r="3" fill="#febc2e"/>
+  </g>
+
+  <!-- Arrow 5→6 -->
+  <g class="n6"><line class="arrow" x1="640" y1="165" x2="668" y2="165"/></g>
+
+  <!-- Node 6: Resolution Engine -->
+  <g class="n6">
+    <rect class="node-bg" x="670" y="140" width="100" height="50" fill="#161b22" stroke="#e94560"/>
+    <text class="node-label" x="720" y="162" text-anchor="middle">⚖️ Resolve</text>
+    <text class="node-sub" x="720" y="178" text-anchor="middle">stability</text>
+    <circle class="glow-dot glow-dot2" cx="770" cy="140" r="3" fill="#e94560"/>
+  </g>
+
+  <!-- Arrow 6→DB (down) -->
+  <g class="n7"><line class="arrow" x1="720" y1="190" x2="720" y2="238"/></g>
+
+  <!-- Node 7: Memory Graph (DB) - centered below resolver -->
+  <g class="n7">
+    <rect class="node-bg" x="650" y="240" width="140" height="55" fill="#0f3460" stroke="#66fcf1" stroke-width="2"/>
+    <text class="node-label" x="720" y="263" text-anchor="middle" font-size="12">🗄️ Memory Graph</text>
+    <text class="node-sub" x="720" y="279" text-anchor="middle">SQLite · audit trail</text>
+    <circle class="glow-dot glow-dot3" cx="650" cy="240" r="3" fill="#66fcf1"/>
+  </g>
+
+  <!-- Side: Reflection Engine (bottom left) -->
+  <g class="side">
+    <rect class="node-bg" x="430" y="255" width="130" height="40" fill="#161b22" stroke="#d2a8ff"/>
+    <text class="node-label" x="495" y="279" text-anchor="middle" font-size="10">🔄 Reflection Engine</text>
+    <line class="arrow-side" x1="560" y1="270" x2="648" y2="268"/>
+    <text class="node-sub" x="600" y="260" text-anchor="middle">consolidate</text>
+  </g>
+
+  <!-- Side: Vector Index (top right) -->
+  <g class="side">
+    <rect class="node-bg" x="430" y="50" width="130" height="40" fill="#161b22" stroke="#d2a8ff"/>
+    <text class="node-label" x="495" y="74" text-anchor="middle" font-size="10">🧮 Vector Index</text>
+    <line class="arrow-side" x1="560" y1="80" x2="710" y2="238"/>
+    <text class="node-sub" x="645" y="130" text-anchor="middle">TF-IDF</text>
+  </g>
+
+  <!-- Labels on top -->
+  <g class="n1">
+    <text x="425" y="25" text-anchor="middle" font-size="13" fill="#484f58" font-family="Courier New,monospace">── memora pipeline ──</text>
+  </g>
+</svg>
