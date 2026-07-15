@@ -117,6 +117,35 @@ st.markdown("""
 # API configuration
 API_URL = os.environ.get("BACKEND_URL", "http://localhost:8002")
 
+# JWT Decoding and Rate Limiting Utilities
+def decode_token_payload(token: str) -> dict:
+    try:
+        parts = token.split('.')
+        if len(parts) == 3:
+            payload_enc = parts[1]
+            rem = len(payload_enc) % 4
+            if rem > 0:
+                payload_enc += '=' * (4 - rem)
+            import base64
+            import json
+            return json.loads(base64.urlsafe_b64decode(payload_enc.encode('utf-8')).decode('utf-8'))
+    except Exception:
+        pass
+    return {}
+
+def update_rate_limit(headers):
+    if not headers:
+        return
+    limit = headers.get("X-RateLimit-Limit")
+    remaining = headers.get("X-RateLimit-Remaining")
+    window = headers.get("X-RateLimit-Window")
+    if limit is not None:
+        st.session_state.rate_limit_limit = limit
+    if remaining is not None:
+        st.session_state.rate_limit_remaining = remaining
+    if window is not None:
+        st.session_state.rate_limit_window = window
+
 # Setup Hybrid fallback imports
 try:
     from app.db import SessionLocal
@@ -143,6 +172,30 @@ if "api_key" not in st.session_state:
     st.session_state.api_key = ""
 if "consolidation_logs" not in st.session_state:
     st.session_state.consolidation_logs = []
+if "user_role" not in st.session_state:
+    st.session_state.user_role = "standard"
+if "rate_limit_limit" not in st.session_state:
+    st.session_state.rate_limit_limit = None
+if "rate_limit_remaining" not in st.session_state:
+    st.session_state.rate_limit_remaining = None
+if "rate_limit_window" not in st.session_state:
+    st.session_state.rate_limit_window = None
+
+# Decode token payload to find role on reload
+if st.session_state.token and (st.session_state.user_role == "standard" or st.session_state.user_role is None):
+    token_payload = decode_token_payload(st.session_state.token)
+    if token_payload:
+        st.session_state.user_role = token_payload.get("role", "standard")
+elif not st.session_state.token and st.session_state.username and DIRECT_MODE_AVAILABLE:
+    db = SessionLocal()
+    try:
+        user = db.query(DB_User).filter(DB_User.username == st.session_state.username).first()
+        if user:
+            st.session_state.user_role = getattr(user, "role", "standard")
+    except Exception:
+        pass
+    finally:
+        db.close()
 
 # Header UI
 col_logo, col_title = st.columns([1, 15])
@@ -186,14 +239,16 @@ if not st.session_state.username:
         st.markdown("#### User Registration")
         reg_username = st.text_input("New Username", key="reg_user")
         reg_password = st.text_input("New Password", type="password", key="reg_pass")
+        reg_role = st.selectbox("Assign Role", ["standard", "premium", "admin"], key="reg_role")
         
         if st.button("Create Account"):
             if not reg_username or not reg_password:
                 st.warning("Fields cannot be empty")
             elif is_backend_alive:
                 try:
-                    payload = {"username": reg_username, "password": reg_password}
+                    payload = {"username": reg_username, "password": reg_password, "role": reg_role}
                     res = requests.post(f"{API_URL}/register", json=payload)
+                    update_rate_limit(res.headers)
                     if res.status_code == 200:
                         st.success("Account created successfully! Please login.")
                     else:
@@ -207,7 +262,7 @@ if not st.session_state.username:
                     if existing:
                         st.error("Username already exists locally")
                     else:
-                        new_u = DB_User(username=reg_username, hashed_password=hash_password(reg_password))
+                        new_u = DB_User(username=reg_username, hashed_password=hash_password(reg_password), role=reg_role)
                         db.add(new_u)
                         db.commit()
                         st.success("Account created locally! Please login.")
@@ -226,10 +281,13 @@ if not st.session_state.username:
                 try:
                     payload = {"username": login_username, "password": login_password}
                     res = requests.post(f"{API_URL}/token", data=payload)
+                    update_rate_limit(res.headers)
                     if res.status_code == 200:
                         token_data = res.json()
                         st.session_state.token = token_data["access_token"]
                         st.session_state.username = login_username
+                        token_payload = decode_token_payload(token_data["access_token"])
+                        st.session_state.user_role = token_payload.get("role", "standard")
                         st.success(f"Authenticated as {login_username}!")
                         time.sleep(0.5)
                         st.rerun()
@@ -243,6 +301,7 @@ if not st.session_state.username:
                     user = db.query(DB_User).filter(DB_User.username == login_username).first()
                     if user and verify_password(login_password, user.hashed_password):
                         st.session_state.username = login_username
+                        st.session_state.user_role = getattr(user, "role", "standard")
                         st.success(f"Authenticated locally as {login_username}!")
                         time.sleep(0.5)
                         st.rerun()
@@ -263,14 +322,52 @@ auth_headers = {"Authorization": f"Bearer {st.session_state.token}"} if st.sessi
 
 # Sidebar Controls
 with st.sidebar:
-    st.markdown(f"👤 Logged in as: **{st.session_state.username}**")
+    badge_class = "badge-superseded"
+    if st.session_state.user_role == "admin":
+        badge_class = "badge-disputed"
+    elif st.session_state.user_role == "premium":
+        badge_class = "badge-active"
+        
+    st.markdown(
+        f"<div style='margin-bottom: 10px;'>"
+        f"👤 Logged in as: <b>{st.session_state.username}</b> "
+        f"<span class='status-badge {badge_class}'>{st.session_state.user_role}</span>"
+        f"</div>",
+        unsafe_allow_html=True
+    )
+    
     if st.button("🚪 Sign Out"):
         st.session_state.username = None
         st.session_state.token = None
         st.session_state.messages = []
+        st.session_state.user_role = "standard"
+        st.session_state.rate_limit_limit = None
+        st.session_state.rate_limit_remaining = None
+        st.session_state.rate_limit_window = None
         st.rerun()
         
     st.markdown("---")
+    
+    # Rate Limits UI widget
+    if is_backend_alive and st.session_state.rate_limit_limit is not None:
+        st.markdown("### ⏱️ Rate Limits")
+        try:
+            lim = int(st.session_state.rate_limit_limit)
+            rem = int(st.session_state.rate_limit_remaining)
+            pct = rem / lim
+        except Exception:
+            pct = 1.0
+            lim = st.session_state.rate_limit_limit
+            rem = st.session_state.rate_limit_remaining
+            
+        color = "#00ff87" if pct > 0.5 else "#ffcc00" if pct > 0.2 else "#ff3366"
+        st.markdown(
+            f"Remaining: <strong style='color:{color}; font-size:1.1rem;'>{rem}</strong> / {lim}<br/>"
+            f"<span style='font-size:0.75rem; color:#888;'>Reset Window: {st.session_state.rate_limit_window}</span>",
+            unsafe_allow_html=True
+        )
+        st.progress(max(0.0, min(1.0, pct)))
+        st.markdown("---")
     st.markdown("### ⚙️ Configurations")
     openai_key = st.text_input("OpenAI Key (Optional)", value=st.session_state.api_key, type="password")
     if openai_key != st.session_state.api_key:
@@ -314,9 +411,12 @@ with st.sidebar:
         if is_backend_alive:
             try:
                 res = requests.post(f"{API_URL}/reflection/trigger", headers=auth_headers)
+                update_rate_limit(res.headers)
                 if res.status_code == 200:
                     st.session_state.consolidation_logs = res.json().get("actions_performed", [])
                     st.success("Consolidation run finished!")
+                elif res.status_code == 429:
+                    st.error("⏳ Rate limit exceeded on consolidation trigger.")
                 else:
                     st.error("Consolidation trigger failed.")
             except Exception as e:
@@ -333,11 +433,17 @@ with st.sidebar:
     if st.button("🗑️ Reset User Memory Graph", type="primary", use_container_width=True):
         if is_backend_alive:
             try:
-                requests.post(f"{API_URL}/memories/clear", headers=auth_headers)
-                st.session_state.messages = []
-                st.success("Memory cleared!")
-                time.sleep(0.5)
-                st.rerun()
+                res = requests.post(f"{API_URL}/memories/clear", headers=auth_headers)
+                update_rate_limit(res.headers)
+                if res.status_code == 200:
+                    st.session_state.messages = []
+                    st.success("Memory cleared!")
+                    time.sleep(0.5)
+                    st.rerun()
+                elif res.status_code == 429:
+                    st.error("⏳ Rate limit exceeded on clear memory request.")
+                else:
+                    st.error("Failed to clear memory.")
             except Exception as e:
                 st.error(f"Error: {e}")
         elif DIRECT_MODE_AVAILABLE:
@@ -364,17 +470,32 @@ def fetch_graph_data():
     if is_backend_alive:
         try:
             res_act = requests.get(f"{API_URL}/memories", headers=auth_headers)
+            update_rate_limit(res_act.headers)
             if res_act.status_code == 200:
                 active_mems = res_act.json()
+            elif res_act.status_code == 429:
+                st.error("⏳ Rate limit exceeded on memories retrieval. Please try again later.")
+                
             res_hist = requests.get(f"{API_URL}/memories/history", headers=auth_headers)
+            update_rate_limit(res_hist.headers)
             if res_hist.status_code == 200:
                 history_mems = res_hist.json()
+            elif res_hist.status_code == 429:
+                st.error("⏳ Rate limit exceeded on memory history. Please try again later.")
+                
             res_aud = requests.get(f"{API_URL}/memories/audit", headers=auth_headers)
+            update_rate_limit(res_aud.headers)
             if res_aud.status_code == 200:
                 audit_events = res_aud.json()
+            elif res_aud.status_code == 429:
+                st.error("⏳ Rate limit exceeded on audit logs. Please try again later.")
+                
             res_graph = requests.get(f"{API_URL}/graph/snapshot", headers=auth_headers)
+            update_rate_limit(res_graph.headers)
             if res_graph.status_code == 200:
                 graph_snap = res_graph.json()
+            elif res_graph.status_code == 429:
+                st.error("⏳ Rate limit exceeded on graph snapshot. Please try again later.")
         except Exception:
             pass
     elif DIRECT_MODE_AVAILABLE:
@@ -462,8 +583,12 @@ with col_left:
                 try:
                     payload = {"user_id": st.session_state.username, "message": input_to_process, "session_id": st.session_state.session_id}
                     res = requests.post(f"{API_URL}/chat", json=payload, headers=auth_headers, timeout=5)
+                    update_rate_limit(res.headers)
                     if res.status_code == 200:
                         agent_res = res.json().get("response", "")
+                    elif res.status_code == 429:
+                        agent_res = "⏳ Rate limit exceeded. Please try again later."
+                        st.error("⏳ Rate limit exceeded! Please wait for the window to reset.")
                     else:
                         agent_res = f"API Error: {res.text}"
                 except Exception as e:
